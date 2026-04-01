@@ -53,7 +53,7 @@ class Job(Base):
     submission_id = Column(Integer, ForeignKey("code_submissions.id"))
     submission = relationship("CodeSubmission")
 
-    # 🔥 ADD THIS (MOST IMPORTANT)
+    # ADD THIS (MOST IMPORTANT)
     repo_id = Column(String, index=True, nullable=True)
 
     status = Column(String, default="pending")  # pending, processing, completed, failed

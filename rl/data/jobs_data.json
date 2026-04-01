@@ -1,0 +1,511 @@
+{
+    "total": 10,
+    "data": [
+        {
+            "job_id": 1,
+            "repo_id": "b70ef9ad-5af1-4b11-8ca1-587e475a1123",
+            "result": {
+                "analysis": "{\n  \"summary\": \"\",\n  \"structures\": [],\n  \"variables\": [\"id\", \"name\", \"age\", \"course\"],\n  \"patterns\": [],\n  \"potential_concerns\": []\n}",
+                "issues": [
+                    {
+                        "issue": "Unnecessary Variable",
+                        "description": "The 'age' variable is not being used in the provided code. Consider removing it to improve readability and maintainability."
+                    },
+                    {
+                        "issue": "Unused Import",
+                        "description": "The 'patterns' array is declared but never used in the code. Remove unused imports to prevent clutter and potential issues."
+                    },
+                    {
+                        "issue": "Unclear Structure Usage",
+                        "description": "The 'structures' array is empty, which may indicate that no data structures are being utilized. Consider adding relevant data structures to improve code organization."
+                    }
+                ],
+                "fixes": [
+                    {
+                        "issue": "Unnecessary Variable",
+                        "fix": ""
+                    },
+                    {
+                        "issue": "Unused Import",
+                        "fix": ""
+                    },
+                    {
+                        "issue": "Unclear Structure Usage",
+                        "fix": ""
+                    }
+                ],
+                "explanations": {
+                    "explanation": ""
+                }
+            },
+            "status": "completed"
+        },
+        {
+            "job_id": 2,
+            "repo_id": "b70ef9ad-5af1-4b11-8ca1-587e475a1123",
+            "result": {
+                "analysis": "{\n  \"summary\": \"\",\n  \"structures\": [],\n  \"variables\": [\"id\", \"name\", \"age\", \"course\"],\n  \"patterns\": [],\n  \"potential_concerns\": []\n}",
+                "issues": [
+                    {
+                        "issue": "Undefined variable",
+                        "description": "The 'grade' variable is used but not declared in the code."
+                    },
+                    {
+                        "issue": "Unused variable",
+                        "description": "The 'course' variable is declared but not used anywhere in the code."
+                    },
+                    {
+                        "issue": "Potential security vulnerability",
+                        "description": "The 'age' variable is not validated for numeric values, which may lead to potential security vulnerabilities if user input is not sanitized."
+                    }
+                ],
+                "fixes": [
+                    {
+                        "issue": "Undefined variable",
+                        "fix": "Declare the 'grade' variable before using it"
+                    },
+                    {
+                        "issue": "Unused variable",
+                        "fix": "Remove the unused declaration of the 'course' variable"
+                    },
+                    {
+                        "issue": "Potential security vulnerability",
+                        "fix": "Validate the 'age' variable for numeric values to prevent potential security vulnerabilities"
+                    }
+                ],
+                "explanations": {
+                    "error": "Could not extract JSON",
+                    "raw_output": "{\n  \"explanation\": \"{\\n  \\\"summary\\\": \\\"\\\",\\n  \\\"structures\\\": [],\\n  \\\"variables\\\": [\\\"id\\\", \\\"name\\\", \\\"age\\\", \\\"course\\\"],\\n  \\\"patterns\\\": [],\\n  \\\"potential_concerns\\\": []\\n}\""
+                }
+            },
+            "status": "completed"
+        },
+        {
+            "job_id": 3,
+            "repo_id": "2564274e-d2ee-4403-8c5e-1137223c0870",
+            "result": {
+                "analysis": "{\n  \"summary\": \"\",\n  \"structures\": [],\n  \"variables\": [\"id\", \"name\", \"age\", \"course\"],\n  \"patterns\": [],\n  \"potential_concerns\": []\n}",
+                "issues": [
+                    {
+                        "issue": "Unused variable",
+                        "description": "The 'course' variable is not used in the code"
+                    },
+                    {
+                        "issue": "Uninitialized variable",
+                        "description": "The 'age' variable is initialized after being accessed"
+                    },
+                    {
+                        "issue": "Improper data structure usage",
+                        "description": "The code is using an empty array for the 'structures' property"
+                    }
+                ],
+                "fixes": [
+                    {
+                        "issue": "Unused variable",
+                        "fix": "Remove or use the 'course' variable"
+                    },
+                    {
+                        "issue": "Uninitialized variable",
+                        "fix": "Initialize the 'age' variable before accessing it"
+                    },
+                    {
+                        "issue": "Improper data structure usage",
+                        "fix": "Use a non-empty array for the 'structures' property"
+                    }
+                ],
+                "explanations": {
+                    "summary": "",
+                    "structures": [],
+                    "variables": [
+                        "id",
+                        "name",
+                        "age",
+                        "course"
+                    ],
+                    "patterns": [],
+                    "potential_concerns": []
+                }
+            },
+            "status": "completed"
+        },
+        {
+            "job_id": 4,
+            "repo_id": "2564274e-d2ee-4403-8c5e-1137223c0870",
+            "result": {
+                "analysis": "{\n  \"summary\": \"\",\n  \"structures\": [],\n  \"variables\": [\"id\", \"name\", \"age\", \"course\"],\n  \"patterns\": [],\n  \"potential_concerns\": []\n}",
+                "issues": [
+                    {
+                        "issue": "Unused variable",
+                        "description": "The 'course' variable is not being used in the code"
+                    },
+                    {
+                        "issue": "Inconsistent naming convention",
+                        "description": "The variable names 'id', 'name', and 'age' use camelCase, while 'course' uses underscore notation. This inconsistency may lead to confusion or errors"
+                    },
+                    {
+                        "issue": "Lack of input validation",
+                        "description": "No checks are performed on the values of 'id', 'name', and 'age' variables. This could lead to unexpected behavior or errors if invalid data is provided"
+                    }
+                ],
+                "fixes": [
+                    {
+                        "issue": "Unused variable",
+                        "fix": "Remove unused 'course' variable"
+                    },
+                    {
+                        "issue": "Inconsistent naming convention",
+                        "fix": "Use camelCase for all variables: id, name, age, course"
+                    },
+                    {
+                        "issue": "Lack of input validation",
+                        "fix": "Add checks for valid values on 'id', 'name', and 'age' variables"
+                    }
+                ],
+                "explanations": {
+                    "summary": "",
+                    "structures": [],
+                    "variables": [
+                        {
+                            "id": "string"
+                        },
+                        {
+                            "name": "string"
+                        },
+                        {
+                            "age": "integer"
+                        },
+                        {
+                            "course": "string"
+                        }
+                    ],
+                    "patterns": [],
+                    "potential_concerns": []
+                }
+            },
+            "status": "completed"
+        },
+        {
+            "job_id": 5,
+            "repo_id": "06739d64-c483-4f32-a472-15b2b84822a7",
+            "result": {
+                "analysis": "{\n  \"summary\": \"\",\n  \"structures\": [\n    \"DB_connection\",\n    \"Connection\",\n    \"PreparedStatement\",\n    \"Statement\",\n    \"ResultSet\"\n  ],\n  \"variables\": [\n    \"conn\",\n    \"ps\",\n    \"st\",\n    \"rs\",\n    \"id\",\n    \"name\",\n    \"age\",\n    \"course\",\n    \"query\",\n    \"Maya@1979\"\n  ],\n  \"patterns\": [],\n  \"potential_concerns\": []\n}",
+                "issues": [
+                    {
+                        "issue": "SQL Injection Vulnerability",
+                        "description": "The query string is directly concatenated with the user input, making it vulnerable to SQL injection attacks."
+                    },
+                    {
+                        "issue": "Insecure Connection Establishment",
+                        "description": "The database connection is established without verifying the server's identity or ensuring a secure protocol (SSL/TLS)."
+                    },
+                    {
+                        "issue": "Unvalidated User Input",
+                        "description": "User input is not properly sanitized, potentially leading to unexpected behavior or even security issues."
+                    }
+                ],
+                "fixes": [
+                    {
+                        "issue": "SQL Injection Vulnerability",
+                        "fix": "Use prepared statements and parameterized queries"
+                    },
+                    {
+                        "issue": "Insecure Connection Establishment",
+                        "fix": "Verify the server's identity using SSL/TLS and ensure a secure protocol for database connections"
+                    },
+                    {
+                        "issue": "Unvalidated User Input",
+                        "fix": "Properly sanitize user input to prevent unexpected behavior or security issues"
+                    }
+                ],
+                "explanations": {
+                    "summary": "",
+                    "structures": [
+                        "DB_connection",
+                        "Connection",
+                        "PreparedStatement",
+                        "Statement",
+                        "ResultSet"
+                    ],
+                    "variables": [
+                        "conn",
+                        "ps",
+                        "st",
+                        "rs",
+                        "id",
+                        "name",
+                        "age",
+                        "course",
+                        "query",
+                        "Maya@1979"
+                    ],
+                    "patterns": [],
+                    "potential_concerns": []
+                }
+            },
+            "status": "completed"
+        },
+        {
+            "job_id": 6,
+            "repo_id": "06739d64-c483-4f32-a472-15b2b84822a7",
+            "result": {
+                "analysis": "{\n  \"summary\": \"\",\n  \"structures\": [],\n  \"variables\": [],\n  \"patterns\": [],\n  \"potential_concerns\": []\n}",
+                "issues": [
+                    {
+                        "issue": "Unused Variable",
+                        "description": "Variable 'var' is declared but never used"
+                    },
+                    {
+                        "issue": "Inconsistent Naming Convention",
+                        "description": "Function name 'processData' does not follow the consistent naming convention of using camelCase"
+                    },
+                    {
+                        "issue": "Potential Null Reference",
+                        "description": "The variable 'data' is accessed without being checked for null or undefined, which may cause a null reference exception"
+                    }
+                ],
+                "fixes": {
+                    "error": "Could not extract JSON",
+                    "raw_output": "[\n  {\n    \"issue\": \"Unused Variable\",\n    \"fix\": \"Remove unused variable declaration\"\n  },\n  {\n    \"issue\": \"Inconsistent Naming Convention\",\n    \"fix\": \"Rename 'processData' to 'processDataCamelCase'\"\n  },\n  {\n    \"issue\": \"Potential Null Reference\",\n    \"fix\": \"Add null check before accessing 'data'\""
+                },
+                "explanations": {
+                    "summary": "",
+                    "structures": [],
+                    "variables": [],
+                    "patterns": [],
+                    "potential_concerns": []
+                }
+            },
+            "status": "completed"
+        },
+        {
+            "job_id": 7,
+            "repo_id": "4e4f994b-ae88-4e2b-af75-cc44bc6e5f86",
+            "result": {
+                "analysis": "{\n  \"summary\": \"\",\n  \"structures\": [],\n  \"variables\": [\n    \"id\",\n    \"name\",\n    \"age\",\n    \"course\",\n    \"totalFees\",\n    \"paidAmount\",\n    \"pending\"\n  ],\n  \"patterns\": [],\n  \"potential_concerns\": []\n}",
+                "issues": [
+                    {
+                        "issue": "Unused Variable",
+                        "description": "The 'summary' variable is declared but not used anywhere in the code."
+                    },
+                    {
+                        "issue": "Magic Number",
+                        "description": "The value '1000' should be replaced with a named constant for better readability and maintainability."
+                    },
+                    {
+                        "issue": "Unnecessary Type Casting",
+                        "description": "The explicit casting of 'name' to string is unnecessary as it's already declared as a string variable."
+                    }
+                ],
+                "fixes": [
+                    {
+                        "issue": "Unused Variable",
+                        "fix": "Remove the declaration"
+                    },
+                    {
+                        "issue": "Magic Number",
+                        "fix": "Replace with named constant"
+                    },
+                    {
+                        "issue": "Unnecessary Type Casting",
+                        "fix": "Remove type casting"
+                    }
+                ],
+                "explanations": {
+                    "summary": "",
+                    "structures": [],
+                    "variables": [
+                        "id",
+                        "name",
+                        "age",
+                        "course",
+                        "totalFees",
+                        "paidAmount",
+                        "pending"
+                    ],
+                    "patterns": [],
+                    "potential_concerns": []
+                }
+            },
+            "status": "completed"
+        },
+        {
+            "job_id": 8,
+            "repo_id": "4e4f994b-ae88-4e2b-af75-cc44bc6e5f86",
+            "result": {
+                "analysis": "{\n  \"summary\": \"\",\n  \"structures\": [],\n  \"variables\": [\n    {\"name\":\"choice\"},\n    {\"name\":\"id\"},\n    {\"name\":\"name\"},\n    {\"name\":\"age\"},\n    {\"name\":\"course\"},\n    {\"name\":\"searchId\"},\n    {\"name\":\"deleteId\"},\n    {\"name\":\"updateId\"},\n    {\"name\":\"newName\"},\n    {\"name\":\"newAge\"},\n    {\"name\":\"newCourse\"},\n    {\"name\":\"sid\"},\n    {\"name\":\"total\"},\n    {\"name\":\"paid\"}\n  ],\n  \"patterns\": [],\n  \"potential_concerns\": []\n}",
+                "issues": [
+                    {
+                        "issue": "Unused Variable",
+                        "description": "The 'age' variable is declared but not used in the code."
+                    },
+                    {
+                        "issue": "Magic Number",
+                        "description": "The number '10' is hardcoded and should be replaced with a named constant for better readability and maintainability."
+                    },
+                    {
+                        "issue": "Unnecessary Object Property",
+                        "description": "The 'sid' object property does not seem to serve any purpose and can be removed to simplify the code."
+                    }
+                ],
+                "fixes": [
+                    {
+                        "issue": "Unused Variable",
+                        "fix": ""
+                    },
+                    {
+                        "issue": "Magic Number",
+                        "fix": ""
+                    },
+                    {
+                        "issue": "Unnecessary Object Property",
+                        "fix": ""
+                    }
+                ],
+                "explanations": {
+                    "summary": "",
+                    "structures": [],
+                    "variables": [
+                        {
+                            "name": "choice"
+                        },
+                        {
+                            "name": "id"
+                        },
+                        {
+                            "name": "name"
+                        },
+                        {
+                            "name": "age"
+                        },
+                        {
+                            "name": "course"
+                        },
+                        {
+                            "name": "searchId"
+                        },
+                        {
+                            "name": "deleteId"
+                        },
+                        {
+                            "name": "updateId"
+                        },
+                        {
+                            "name": "newName"
+                        },
+                        {
+                            "name": "newAge"
+                        },
+                        {
+                            "name": "newCourse"
+                        },
+                        {
+                            "name": "sid"
+                        },
+                        {
+                            "name": "total"
+                        },
+                        {
+                            "name": "paid"
+                        }
+                    ],
+                    "patterns": [],
+                    "potential_concerns": []
+                }
+            },
+            "status": "completed"
+        },
+        {
+            "job_id": 9,
+            "repo_id": "373e63d9-c601-40c3-a616-4754c746f559",
+            "result": {
+                "analysis": "{\n  \"summary\": \"\",\n  \"structures\": [],\n  \"variables\": [\n    \"id\",\n    \"name\",\n    \"age\",\n    \"course\",\n    \"totalFees\",\n    \"paidAmount\"\n  ],\n  \"patterns\": [],\n  \"potential_concerns\": []\n}",
+                "issues": [
+                    {
+                        "issue": "Unused variable",
+                        "description": "The 'summary' field is unused and can be removed to declutter the code."
+                    },
+                    {
+                        "issue": "Inconsistent naming convention",
+                        "description": "The variable names do not follow a consistent naming convention, which may lead to confusion or errors. It's recommended to use either camelCase or underscore notation throughout the code."
+                    },
+                    {
+                        "issue": "Potential for null pointer exception",
+                        "description": "The 'age' and 'course' variables are not initialized before being used, which could result in a null pointer exception if they are accessed before being assigned a value."
+                    }
+                ],
+                "fixes": [
+                    {
+                        "issue": "Unused variable",
+                        "fix": "The 'summary' field is unused and can be removed to declutter the code."
+                    },
+                    {
+                        "issue": "Inconsistent naming convention",
+                        "fix": "The variable names do not follow a consistent naming convention, which may lead to confusion or errors. It's recommended to use either camelCase or underscore notation throughout the code."
+                    },
+                    {
+                        "issue": "Potential for null pointer exception",
+                        "fix": "The 'age' and 'course' variables are not initialized before being used, which could result in a null pointer exception if they are accessed before being assigned a value."
+                    }
+                ],
+                "explanations": {
+                    "summary": "",
+                    "structures": [],
+                    "variables": [
+                        "id",
+                        "name",
+                        "age",
+                        "course",
+                        "totalFees",
+                        "paidAmount"
+                    ],
+                    "patterns": [],
+                    "potential_concerns": []
+                }
+            },
+            "status": "completed"
+        },
+        {
+            "job_id": 10,
+            "repo_id": "373e63d9-c601-40c3-a616-4754c746f559",
+            "result": {
+                "analysis": "{\n  \"summary\": \"\",\n  \"structures\": [],\n  \"variables\": [],\n  \"patterns\": [],\n  \"potential_concerns\": []\n}",
+                "issues": [
+                    {
+                        "issue": "Unused variable",
+                        "description": "The variable 'x' is declared but not used anywhere in the code"
+                    },
+                    {
+                        "issue": "Inconsistent naming convention",
+                        "description": "The code uses both camelCase and underscore notation for variable names, which may lead to confusion"
+                    },
+                    {
+                        "issue": "Potential SQL injection vulnerability",
+                        "description": "User input is being used directly in an SQL query without proper sanitization or parameterization"
+                    }
+                ],
+                "fixes": [
+                    {
+                        "issue": "Unused variable",
+                        "fix": "Remove the declaration of the unused variable 'x'"
+                    },
+                    {
+                        "issue": "Inconsistent naming convention",
+                        "fix": "Use a consistent naming convention throughout the code"
+                    },
+                    {
+                        "issue": "Potential SQL injection vulnerability",
+                        "fix": "Parameterize or sanitize user input before using it in an SQL query"
+                    }
+                ],
+                "explanations": {
+                    "summary": "",
+                    "structures": [],
+                    "variables": [],
+                    "patterns": [],
+                    "potential_concerns": []
+                }
+            },
+            "status": "completed"
+        }
+    ]
+}

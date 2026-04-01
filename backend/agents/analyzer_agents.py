@@ -6,7 +6,7 @@ from agents.fixed_generator_agent import fix_generator_agent
 from agents.explanation_agent import explanation_agent
 
 
-# 🔹 Analyzer Agent
+# Analyzer Agent
 async def analyzer_agent(code: str):
     prompt = f"""
 You are a JSON API.
@@ -42,7 +42,7 @@ Code:
     return response
 
 
-# 🔥 PIPELINE (clean, no wrapping, no duplicates)
+# PIPELINE (clean, no wrapping, no duplicates)
 async def run_pipeline(code: str):
     analysis = await analyzer_agent(code)
 

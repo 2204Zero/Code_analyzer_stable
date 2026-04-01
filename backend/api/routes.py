@@ -109,14 +109,14 @@ async def analyze_repo(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    # ✅ CREATE repo_id ONLY ONCE
+    # CREATE repo_id ONLY ONCE
     repo_id = str(uuid.uuid4())
 
     # clone + extract
     repo_path = clone_repo(repo_url)
     files = extract_code_files(repo_path)
 
-    # ✅ STORE EMBEDDINGS (RAG)
+    # STORE EMBEDDINGS (RAG)
     store_repo_chunks(repo_id, files)
 
     job_ids = []
@@ -295,4 +295,23 @@ Answer in structured bullet points.
         "answer": answer,
         "chunks_used": len(chunks),
         "context_preview": chunks[:2]
+    }
+
+@router.get("/export/jobs")
+def export_jobs(db: Session = Depends(get_db)):
+    jobs = db.query(Job).all()
+
+    result = []
+
+    for job in jobs:
+        result.append({
+            "job_id": job.id,
+            "repo_id": job.repo_id,
+            "result": job.result,
+            "status": job.status
+        })
+
+    return {
+        "total": len(result),
+        "data": result
     }
