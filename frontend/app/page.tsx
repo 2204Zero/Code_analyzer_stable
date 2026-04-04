@@ -1,6 +1,8 @@
 'use client';
 import React, { useState, useEffect, useRef } from "react";
 import HexGrid from "../components/HexGrid";
+import GlowButton from "../components/GlowButton";
+
 
 export default function Home() {
   const [particles, setParticles] = useState<
@@ -15,7 +17,7 @@ export default function Home() {
       dx: (Math.random() - 0.5) * 16,
       dy: (Math.random() - 0.5) * 16,
       size: Math.random() < 0.5 ? 1 : 2,
-      opacity: 0.08 + Math.random() * 0.08,
+      opacity: 0.15 + Math.random() * 0.1,
     }));
     setParticles(generated);
   }, []);
@@ -87,6 +89,7 @@ export default function Home() {
   };
   return (
     <main className="relative min-h-screen bg-[#0b0f0e] text-white overflow-hidden" onMouseMove={handleMouseMove}>
+      
 
       {/* ✅ BACKGROUND (HEX GRID — TRUE BACKGROUND) */}
       <HexGrid offsetX={parallax.x} offsetY={parallax.y} />
@@ -109,7 +112,7 @@ export default function Home() {
               width: p.size,
               height: p.size,
               opacity: p.opacity,
-              backgroundColor: "rgba(255,255,255,0.6)",
+              backgroundColor: "rgba(255,255,255,0.8)",
               animation: `particle-${p.id} ${p.duration}s ease-in-out infinite alternate`,
             }}
           />
@@ -205,29 +208,16 @@ export default function Home() {
               onBlur={() => setInputFocused(false)}
             />
 
-            <button
-              className="ml-3 px-5 py-2 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-400 text-black text-sm font-medium transition-all hover:shadow-[0_0_22px_rgba(16,185,129,0.35)] active:scale-95"
-              disabled={loading}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "0 0 24px rgba(16,185,129,0.35)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "0 6px 18px rgba(0,0,0,0.25)";
-              }}
-              onMouseDown={(e) => {
-                e.currentTarget.style.transform = "scale(0.96)";
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.style.transform = "scale(1)";
-              }}
+            <GlowButton
+              className="ml-3"
+              loading={loading}
               onClick={() => {
                 setLoading(true);
                 setStepIndex(0);
               }}
-              style={{ boxShadow: "0 6px 18px rgba(0,0,0,0.25)" }}
             >
-              {loading ? "Analyzing..." : "Analyze"}
-            </button>
+              Analyze
+            </GlowButton>
 
           </div>
 

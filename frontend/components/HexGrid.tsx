@@ -103,7 +103,7 @@ export default function HexGrid({ offsetX = 0, offsetY = 0 }: { offsetX?: number
     cycleRef.current = (idx: number) => {
       setHexes((prev) => {
         const next = [...prev];
-        next[idx] = { ...next[idx], opacity: 0.22 };
+        next[idx] = { ...next[idx], opacity: 0.38 };
         return next;
       });
       const holdId = window.setTimeout(() => {
@@ -187,7 +187,7 @@ export default function HexGrid({ offsetX = 0, offsetY = 0 }: { offsetX?: number
                 animation: `drift-${h.id} ${h.duration}s ease-in-out infinite alternate`,
               }}
             >
-              <div className="clip-hex bg-emerald-500/18 w-full h-full" />
+              <div className="clip-hex bg-emerald-500/30 w-full h-full" />
             </div>
             <div
               className="absolute inset-0"
@@ -197,7 +197,7 @@ export default function HexGrid({ offsetX = 0, offsetY = 0 }: { offsetX?: number
                 animation: `drift-${h.id} ${h.duration}s ease-in-out infinite alternate`,
               }}
             >
-              <div className="clip-hex border border-emerald-400/20 w-full h-full" />
+              <div className="clip-hex border border-emerald-400/40 w-full h-full" />
             </div>
           </div>
         );
