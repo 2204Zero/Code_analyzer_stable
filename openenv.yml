@@ -1,0 +1,9 @@
+name: code-analysis-env
+
+entrypoint: inference.py
+
+env:
+  observation_space: dict
+  action_space: dict
+
+max_steps: 3
