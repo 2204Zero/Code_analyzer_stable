@@ -13,15 +13,26 @@ MAX_STEPS = 3
 
 
 # -----------------------------
-# SAFE MOCK AGENT (NO API CALL)
+# SMART SAFE AGENT (NO API)
 # -----------------------------
 def agent_policy(state, step):
-    if step == 1:
+    files = state.get("files", "").lower()
+
+    # Try to detect issues from content
+    if "unused" in files:
         return "unused variable | remove unused variable"
 
-    elif step == 2:
+    if "hardcoded" in files:
         return "hardcoded value | replace with constant"
 
+    if "duplicate" in files or "refactor" in files:
+        return "code quality issue | refactor code"
+
+    # fallback (step-based)
+    if step == 1:
+        return "unused variable | remove unused variable"
+    elif step == 2:
+        return "hardcoded value | replace with constant"
     else:
         return "code quality issue | refactor code"
 
@@ -36,8 +47,8 @@ def parse_action(action_str):
         fix = parts[1].strip() if len(parts) > 1 else ""
 
         return {
-            "identified_issues": [issue],
-            "suggested_fixes": [fix]
+            "identified_issues": [issue] if issue else [],
+            "suggested_fixes": [fix] if fix else []
         }
     except Exception:
         return {
@@ -51,7 +62,12 @@ def parse_action(action_str):
 # -----------------------------
 def run_episode():
     env = CodeAnalysisEnv()
-    state = env.reset()
+
+    try:
+        state = env.reset()
+    except Exception as e:
+        print(f"[END] success=false steps=0 score=0.00 rewards= error={str(e)}", flush=True)
+        return
 
     rewards = []
     steps_taken = 0
@@ -73,7 +89,7 @@ def run_episode():
             reward = 0.0
             done = True
             error = str(e)
-            next_state = state  # ✅ SAFE fallback
+            next_state = state  # SAFE fallback
 
         rewards.append(reward)
         steps_taken = step
@@ -88,10 +104,14 @@ def run_episode():
     # -----------------------------
     # FINAL SCORE
     # -----------------------------
-    score = sum(rewards) / len(rewards) if rewards else 0.0
-    score = max(0.0, min(1.0, score))
+    if rewards:
+        score = sum(rewards) / len(rewards)
+    else:
+        score = 0.0
 
+    score = max(0.0, min(1.0, score))
     success = score > 0.2
+
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
 
     print(
