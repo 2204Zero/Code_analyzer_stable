@@ -35,7 +35,7 @@ async def run_worker():
 
     db = SessionLocal()
 
-    # 🔥 Recover jobs at startup
+    # Recover jobs at startup
     recover_pending_jobs(db)
 
     while True:

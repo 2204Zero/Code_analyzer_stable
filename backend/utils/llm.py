@@ -2,7 +2,7 @@ import httpx
 import json
 from config.settings import USE_LOCAL
 
-# ✅ GLOBAL CLIENT (fix)
+# GLOBAL CLIENT (fix)
 client = httpx.AsyncClient(timeout=60.0)
 
 
