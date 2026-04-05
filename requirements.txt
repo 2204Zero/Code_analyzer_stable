@@ -1,3 +1,5 @@
 pydantic
 openai
 tqdm
+fastapi
+uvicorn
