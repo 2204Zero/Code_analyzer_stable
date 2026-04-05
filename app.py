@@ -7,14 +7,14 @@ env = CodeAnalysisEnv()
 
 @app.post("/reset")
 def reset():
-    state = env.reset()
-    return state
+    obs = env.reset()
+    return {"observation": obs}
 
 @app.post("/step")
 def step(action: dict):
-    state, reward, done, info = env.step(action)
+    obs, reward, done, info = env.step(action)
     return {
-        "state": state,
+        "observation": obs,
         "reward": reward,
         "done": done,
         "info": info
