@@ -36,3 +36,7 @@ def step(action: Optional[Dict[str, Any]] = None):
             "done": True,
             "info": {"error": str(e)}
         }
+    
+@app.get("/")
+def home():
+    return {"message": "Code Analysis RL Environment is running"}
