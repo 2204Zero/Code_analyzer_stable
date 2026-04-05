@@ -20,11 +20,10 @@ DEFAULT_DATA_PATH = os.path.join(BASE_DIR, "data", "jobs_data.json")
 
 class CodeAnalysisEnv:
     def __init__(self, data_path=None):
-        # robust path handling
         self.data_path = data_path or DEFAULT_DATA_PATH
 
-        self.tasks = self.load_tasks()           # RL tasks (data)
-        self.task_configs = get_tasks()          # difficulty configs
+        self.tasks = self.load_tasks()
+        self.task_configs = get_tasks()
 
         self.current_task = None
         self.current_config = None
@@ -33,7 +32,7 @@ class CodeAnalysisEnv:
         self.steps = 0
 
     # =========================
-    # LOAD TASKS (ROBUST)
+    # LOAD TASKS
     # =========================
     def load_tasks(self):
         if not os.path.exists(self.data_path):
@@ -44,7 +43,6 @@ class CodeAnalysisEnv:
 
         tasks = []
 
-        # Handle wrapped JSON
         if isinstance(data, dict) and "data" in data:
             data = data["data"]
 
@@ -63,17 +61,12 @@ class CodeAnalysisEnv:
                 task = {
                     "repo": item.get("repo_id", "unknown_repo"),
                     "problem": "Analyze code and find issues",
-
-                    # raw analysis string
                     "files": result.get("analysis", ""),
-
-                    # ground truth
                     "expected_issues": [
                         i.get("issue", "")
                         for i in result.get("issues", [])
                         if isinstance(i, dict)
                     ],
-
                     "expected_fixes": [
                         f.get("fix", "")
                         for f in result.get("fixes", [])
@@ -81,7 +74,6 @@ class CodeAnalysisEnv:
                     ],
                 }
 
-                # skip empty tasks
                 if not task["expected_issues"]:
                     continue
 
@@ -104,7 +96,6 @@ class CodeAnalysisEnv:
 
         self.current_task = random.choice(self.tasks)
 
-        # assign difficulty config (if exists)
         if self.task_configs:
             self.current_config = random.choice(self.task_configs)
         else:
@@ -112,6 +103,9 @@ class CodeAnalysisEnv:
 
         self.done = False
         self.steps = 0
+
+        # REQUIRED LOG
+        print("[START]")
 
         return self._get_observation()
 
@@ -124,25 +118,40 @@ class CodeAnalysisEnv:
 
         self.steps += 1
 
-        reward, info = compute_reward(
-            self.current_task,
-            action,
-            self.current_config
-        )
+        try:
+            reward, info = compute_reward(
+                self.current_task,
+                action,
+                self.current_config
+            )
+        except Exception as e:
+            # fail-safe (VERY IMPORTANT)
+            print("[STEP] error in reward:", str(e))
+            return self._get_observation(), 0.0, True, {"error": str(e)}
+
+        # REQUIRED LOG
+        print(f"[STEP] step={self.steps} action={action} reward={round(reward, 2)}")
 
         # episode end logic
         if reward >= 0.9 or self.steps >= 3:
             self.done = True
 
+            # REQUIRED LOG
+            print(
+                f"[END] success={reward >= 0.9} "
+                f"steps={self.steps} "
+                f"score={round(reward, 2)}"
+            )
+
         return (
             self._get_observation(),
-            reward,
+            float(reward),
             self.done,
-            info
+            info if info else {}
         )
 
     # =========================
-    # STATE / OBSERVATION
+    # OBSERVATION
     # =========================
     def _get_observation(self) -> Dict[str, Any]:
         if not self.current_task:
@@ -156,6 +165,6 @@ class CodeAnalysisEnv:
             "difficulty": self.current_config.get("difficulty", "unknown"),
         }
 
-    # alias (for spec compatibility)
+    # alias
     def state(self):
         return self._get_observation()
