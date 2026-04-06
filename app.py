@@ -35,27 +35,34 @@ def generate_default_action(state):
     try:
         files = str(state.get("files", "")).lower()
 
+        issues = []
+        fixes = []
+
+        # smarter detection
         if "unused" in files:
-            return {
-                "identified_issues": ["unused variable"],
-                "suggested_fixes": ["remove unused variable"]
-            }
+            issues.append("unused variable")
+            fixes.append("remove unused variable")
 
-        if "hardcoded" in files:
-            return {
-                "identified_issues": ["hardcoded value"],
-                "suggested_fixes": ["replace with constant"]
-            }
+        if "hardcoded" in files or "constant" in files:
+            issues.append("hardcoded value")
+            fixes.append("replace with constant")
 
-        if "duplicate" in files or "refactor" in files:
-            return {
-                "identified_issues": ["code quality issue"],
-                "suggested_fixes": ["refactor code"]
-            }
+        if "duplicate" in files:
+            issues.append("duplicate code")
+            fixes.append("remove duplication")
+
+        if "refactor" in files or "complex" in files:
+            issues.append("code quality issue")
+            fixes.append("refactor code")
+
+        # fallback if nothing found
+        if not issues:
+            issues = ["code quality issue"]
+            fixes = ["refactor code"]
 
         return {
-            "identified_issues": ["code quality issue"],
-            "suggested_fixes": ["refactor code"]
+            "identified_issues": issues,
+            "suggested_fixes": fixes
         }
 
     except Exception:
