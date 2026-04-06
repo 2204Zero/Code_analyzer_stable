@@ -38,12 +38,11 @@ def generate_default_action(state):
         issues = []
         fixes = []
 
-        # smarter detection
         if "unused" in files:
             issues.append("unused variable")
             fixes.append("remove unused variable")
 
-        if "hardcoded" in files or "constant" in files:
+        if "hardcoded" in files or "magic number" in files:
             issues.append("hardcoded value")
             fixes.append("replace with constant")
 
@@ -51,11 +50,11 @@ def generate_default_action(state):
             issues.append("duplicate code")
             fixes.append("remove duplication")
 
-        if "refactor" in files or "complex" in files:
+        # NEW BOOST
+        if "function" in files or "loop" in files or "complex" in files:
             issues.append("code quality issue")
             fixes.append("refactor code")
 
-        # fallback if nothing found
         if not issues:
             issues = ["code quality issue"]
             fixes = ["refactor code"]
