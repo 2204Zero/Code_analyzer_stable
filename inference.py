@@ -1,6 +1,7 @@
 import os
 from rl.env import CodeAnalysisEnv
 
+print(" MY NEW INFERENCE IS RUNNING ", flush=True)
 # -----------------------------
 # CONFIG (REQUIRED BY SPEC)
 # -----------------------------
