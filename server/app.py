@@ -121,3 +121,9 @@ def step(action: Optional[Dict[str, Any]] = None):
 @app.get("/")
 def home():
     return {"message": "Code Analysis RL Environment is running"}
+
+# -----------------------------
+# REQUIRED ENTRYPOINT FOR OPENENV
+# -----------------------------
+def main():
+    return app
