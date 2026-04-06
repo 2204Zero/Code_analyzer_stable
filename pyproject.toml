@@ -1,0 +1,16 @@
+[project]
+name = "code-analysis-env"
+version = "0.1.0"
+description = "RL environment for code analysis"
+authors = [
+    { name="Lakshya Goyal", email="lakshyagoyal701@gmail.com" },
+    { name="Mausam", email="mausamsaini65@gmail.com" }
+]
+dependencies = [
+    "fastapi",
+    "uvicorn"
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
