@@ -12,7 +12,6 @@ def compute_reward(task, action, config=None):
     expected_issues = task.get("expected_issues", [])
     expected_fixes = task.get("expected_fixes", [])
 
-    # Handle both string and list inputs
     identified_issues = action.get("identified_issues") or action.get("identified_issue", [])
     suggested_fixes = action.get("suggested_fixes") or action.get("suggested_fix", [])
 
@@ -24,18 +23,18 @@ def compute_reward(task, action, config=None):
         suggested_fixes = [suggested_fixes]
 
     # -----------------------------
-    # ISSUE SCORING (BEST MATCH PER EXPECTED)
+    # ISSUE SCORING
     # -----------------------------
     issue_scores = []
 
     for expected in expected_issues:
-        best_match = 0
+        best_match = 0.0
         for predicted in identified_issues:
             sim = similarity(predicted, expected)
             best_match = max(best_match, sim)
         issue_scores.append(best_match)
 
-    issue_score = sum(issue_scores) / len(issue_scores) if issue_scores else 0
+    issue_score = sum(issue_scores) / len(issue_scores) if issue_scores else 0.0
 
     # -----------------------------
     # FIX SCORING
@@ -43,18 +42,22 @@ def compute_reward(task, action, config=None):
     fix_scores = []
 
     for expected in expected_fixes:
-        best_match = 0
+        best_match = 0.0
         for predicted in suggested_fixes:
             sim = similarity(predicted, expected)
             best_match = max(best_match, sim)
         fix_scores.append(best_match)
 
-    fix_score = sum(fix_scores) / len(fix_scores) if fix_scores else 0
+    fix_score = sum(fix_scores) / len(fix_scores) if fix_scores else 0.0
 
     # -----------------------------
     # BASE REWARD
     # -----------------------------
     reward = (0.6 * issue_score) + (0.4 * fix_score)
+
+    # CRITICAL FIX: fallback boost if partial match exists
+    if issue_score > 0 and fix_score == 0:
+        reward += 0.05
 
     # -----------------------------
     # PARTIAL BONUS
@@ -71,7 +74,6 @@ def compute_reward(task, action, config=None):
     if len(suggested_fixes) == 0:
         reward -= 0.1
 
-    # prevent spamming too many answers
     if len(identified_issues) > 5:
         reward -= 0.1
 
@@ -79,7 +81,7 @@ def compute_reward(task, action, config=None):
         reward -= 0.1
 
     # -----------------------------
-    # DIFFICULTY SCALING (IMPORTANT)
+    # DIFFICULTY SCALING
     # -----------------------------
     difficulty = (config or {}).get("difficulty", "medium")
 
@@ -91,9 +93,13 @@ def compute_reward(task, action, config=None):
         reward *= 0.8
 
     # -----------------------------
-    # CLAMP
+    # FINAL STRICT CLAMP (CRITICAL FIX)
     # -----------------------------
-    reward = max(0.0, min(1.0, reward))
+    # Must be STRICTLY between (0,1)
+    if reward <= 0.0:
+        reward = 0.05   # minimum safe value
+    elif reward >= 1.0:
+        reward = 0.95   # maximum safe value
 
     # -----------------------------
     # INFO DEBUG
