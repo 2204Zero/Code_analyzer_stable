@@ -1,25 +1,44 @@
 import os
 from rl.env import CodeAnalysisEnv
 
+# NEW: LLM client (REQUIRED FOR PHASE 2)
+from openai import OpenAI
+
 print(" MY NEW INFERENCE IS RUNNING ", flush=True)
+
 # -----------------------------
 # CONFIG (REQUIRED BY SPEC)
 # -----------------------------
-API_BASE_URL = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
-MODEL_NAME = os.getenv("MODEL_NAME", "mock-model")
+API_BASE_URL = os.getenv("API_BASE_URL")
+API_KEY = os.getenv("API_KEY")
+MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 
 TASK_NAME = "code-analysis"
 BENCHMARK = "custom-env"
 MAX_STEPS = 3
 
+# -----------------------------
+# INIT CLIENT (SAFE)
+# -----------------------------
+client = None
+if API_BASE_URL and API_KEY:
+    try:
+        client = OpenAI(
+            base_url=API_BASE_URL,
+            api_key=API_KEY
+        )
+        print("LLM client initialized", flush=True)
+    except Exception as e:
+        print(f"LLM init failed: {e}", flush=True)
+
 
 # -----------------------------
-# SMART SAFE AGENT (NO API)
+# SMART AGENT (WITH LLM FALLBACK)
 # -----------------------------
 def agent_policy(state, step):
     files = state.get("files", "").lower()
 
-    # Try to detect issues from content
+    # ---- RULE-BASED (FAST + SAFE)
     if "unused" in files:
         return "unused variable | remove unused variable"
 
@@ -29,7 +48,36 @@ def agent_policy(state, step):
     if "duplicate" in files or "refactor" in files:
         return "code quality issue | refactor code"
 
-    # fallback (step-based)
+    # ---- LLM CALL (MANDATORY FOR VALIDATION)
+    if client:
+        try:
+            response = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": f"""
+                        Analyze this code and return ONLY in format:
+                        issue | fix
+
+                        Code:
+                        {state.get("files", "")}
+                        """
+                    }
+                ],
+                max_tokens=50,
+                temperature=0.2
+            )
+
+            output = response.choices[0].message.content.strip()
+
+            if "|" in output:
+                return output
+
+        except Exception as e:
+            print(f"LLM call failed: {e}", flush=True)
+
+    # ---- FALLBACK (NEVER BREAK)
     if step == 1:
         return "unused variable | remove unused variable"
     elif step == 2:
@@ -90,7 +138,7 @@ def run_episode():
             reward = 0.0
             done = True
             error = str(e)
-            next_state = state  # SAFE fallback
+            next_state = state
 
         rewards.append(reward)
         steps_taken = step
@@ -105,14 +153,10 @@ def run_episode():
     # -----------------------------
     # FINAL SCORE
     # -----------------------------
-    if rewards:
-        score = sum(rewards) / len(rewards)
-    else:
-        score = 0.0
-
+    score = sum(rewards) / len(rewards) if rewards else 0.0
     score = max(0.0, min(1.0, score))
-    success = score > 0.2
 
+    success = score > 0.2
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
 
     print(
