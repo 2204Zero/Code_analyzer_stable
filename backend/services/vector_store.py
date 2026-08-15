@@ -1,12 +1,30 @@
 from sentence_transformers import SentenceTransformer
 import chromadb
 import chromadb.config
-# init model
-model = SentenceTransformer("all-MiniLM-L6-v2")
+from config.logging_config import logger
+
+_model = None
+
+import os
+from pathlib import Path
+
+CHROMA_DIR = str(Path(__file__).resolve().parent.parent / "chroma_db")
 
 # init chroma
-client = chromadb.PersistentClient(path="./chroma_db")
+client = chromadb.PersistentClient(
+    path=CHROMA_DIR,
+    settings=chromadb.config.Settings(anonymized_telemetry=False)
+)
 collection = client.get_or_create_collection(name="repo_chunks")
+
+def get_model():
+    global _model
+    if _model is None:
+        try:
+            _model = SentenceTransformer("all-MiniLM-L6-v2")
+        except Exception as e:
+            raise RuntimeError("Embedding model unavailable. Backend could not load sentence-transformers/all-MiniLM-L6-v2. Check internet connection or local model cache.") from e
+    return _model
 
 
 def chunk_text(text, chunk_size=40, overlap=10):
@@ -66,6 +84,7 @@ def store_repo_chunks(repo_id: str, files: list):
             count += 1
 
     if documents:
+        model = get_model()
         embeddings = model.encode(documents).tolist()
 
         collection.add(
@@ -75,10 +94,11 @@ def store_repo_chunks(repo_id: str, files: list):
             ids=ids
         )
 
-    print(f"Stored {len(documents)} chunks for repo {repo_id}")
+    logger.info(f"Stored {len(documents)} chunks for repo {repo_id}")
 
 def query_repo(repo_id: str, query: str, top_k: int = 10):
     try:
+        model = get_model()
         query_embedding = model.encode([query]).tolist()[0]
 
         results = collection.query(
@@ -141,7 +161,7 @@ def query_repo(repo_id: str, query: str, top_k: int = 10):
                 unique_chunks.append(c["text"])
                 seen.add(c["text"])
 
-        print(f"Retrieved {len(unique_chunks)} high-quality chunks")
+        logger.info(f"Retrieved {len(unique_chunks)} high-quality chunks")
 
         # STEP 1: normal retrieval
         selected = unique_chunks[:10]
@@ -162,5 +182,5 @@ def query_repo(repo_id: str, query: str, top_k: int = 10):
         return selected
 
     except Exception as e:
-        print("Error in query_repo:", str(e))
+        logger.error(f"Error in query_repo: {str(e)}")
         return []

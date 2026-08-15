@@ -84,3 +84,20 @@ class AnalysisResult(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     submission = relationship("CodeSubmission", back_populates="results")
+
+
+# ---------------- REPO ANALYSIS ---------------- #
+
+class RepoAnalysis(Base):
+    __tablename__ = "repo_analyses"
+
+    id = Column(Integer, primary_key=True, index=True)
+    repo_id = Column(String, unique=True, index=True)
+    status = Column(String, default="processing")
+    progress = Column(Integer, default=0)
+    report = Column(JSON, nullable=True)
+    ai_summary = Column(JSON, nullable=True)
+    score = Column(JSON, nullable=True)
+
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())

@@ -7,8 +7,8 @@ from services.github_service import clone_repo, extract_code_files
 from config.database import get_db
 from config.redis_client import redis_client
 
-from models.db_models import User, CodeSubmission, Job
-from models.schemas import CodeRequest
+from models.db_models import User, CodeSubmission, Job, RepoAnalysis
+from models.schemas import CodeRequest, UserAuthRequest, AnalyzeRepoRequest, AskRepoRequest
 
 from services.aggregator import aggregate_results, calculate_repo_score
 from services.llm_aggregator import generate_final_summary
@@ -22,19 +22,21 @@ from utils.auth import (
     get_current_user
 )
 
+from config.logging_config import logger
+
 router = APIRouter()
 
 
 # ---------------- AUTH ---------------- #
 
 @router.post("/login")
-def login(email: str, password: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == email).first()
+def login(request: UserAuthRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == request.email).first()
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if not verify_password(password, user.password):
+    if not verify_password(request.password, user.password):
         raise HTTPException(status_code=401, detail="Incorrect password")
 
     token = create_access_token({"sub": user.email})
@@ -46,20 +48,18 @@ def login(email: str, password: str, db: Session = Depends(get_db)):
 
 
 @router.post("/register")
-def register(email: str, password: str, db: Session = Depends(get_db)):
-    print("RAW PASSWORD:", password)
-    print("TYPE:", type(password))
-    print("LENGTH:", len(password))
-    if len(password) > 72:
+def register(request: UserAuthRequest, db: Session = Depends(get_db)):
+    logger.info(f"Registering new user: {request.email}")
+    if len(request.password) > 72:
         raise HTTPException(status_code=400, detail="Password too long")
 
-    existing_user = db.query(User).filter(User.email == email).first()
+    existing_user = db.query(User).filter(User.email == request.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
 
     user = User(
-        email=email,
-        password=hash_password(password)
+        email=request.email,
+        password=hash_password(request.password)
     )
 
     db.add(user)
@@ -105,19 +105,29 @@ async def analyze_code(
 
 @router.post("/analyze-repo")
 async def analyze_repo(
-    repo_url: str,
+    request: AnalyzeRepoRequest,
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
     # CREATE repo_id ONLY ONCE
     repo_id = str(uuid.uuid4())
 
+    repo_analysis = RepoAnalysis(repo_id=repo_id, status="processing", progress=0)
+    db.add(repo_analysis)
+    db.commit()
+    db.refresh(repo_analysis)
+
     # clone + extract
-    repo_path = clone_repo(repo_url)
+    repo_path = clone_repo(request.repo_url)
     files = extract_code_files(repo_path)
 
     # STORE EMBEDDINGS (RAG)
-    store_repo_chunks(repo_id, files)
+    try:
+        store_repo_chunks(repo_id, files)
+    except RuntimeError as e:
+        if "Embedding model unavailable" in str(e):
+            raise HTTPException(status_code=503, detail="Embedding model unavailable. Backend could not load sentence-transformers/all-MiniLM-L6-v2. Check internet connection or local model cache.")
+        raise
 
     job_ids = []
 
@@ -160,58 +170,39 @@ async def get_repo_analysis(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    jobs = db.query(Job).filter(Job.repo_id == repo_id).all()
+    repo_analysis = db.query(RepoAnalysis).filter(RepoAnalysis.repo_id == repo_id).first()
 
-    if not jobs:
+    if not repo_analysis:
         raise HTTPException(status_code=404, detail="Repo not found")
 
-    total_jobs = len(jobs)
-    completed_jobs = len([j for j in jobs if j.status == "completed"])
-    failed_jobs = len([j for j in jobs if j.status == "failed"])
+    if repo_analysis.status == "processing":
+        total_jobs = db.query(Job).filter(Job.repo_id == repo_id).count()
+        completed_jobs = db.query(Job).filter(Job.repo_id == repo_id, Job.status == "completed").count()
+        failed_jobs = db.query(Job).filter(Job.repo_id == repo_id, Job.status == "failed").count()
 
-    progress = int((completed_jobs / total_jobs) * 100)
-
-    if completed_jobs + failed_jobs < total_jobs:
         return {
             "repo_id": repo_id,
             "status": "processing",
-            "progress": progress,
+            "progress": repo_analysis.progress,
             "completed_jobs": completed_jobs,
             "failed_jobs": failed_jobs,
             "total_jobs": total_jobs
         }
 
-    results = [job.result for job in jobs if job.result]
-
-    if not results:
+    if repo_analysis.status == "failed":
         return {
             "repo_id": repo_id,
             "status": "failed",
-            "message": "No valid results generated"
+            "message": "Repository analysis failed"
         }
-
-    final_report = aggregate_results(results)
-
-    issues_list = [i["issue"] for i in final_report.get("top_issues", [])]
-
-    try:
-        ai_summary = await generate_final_summary(issues_list)
-    except Exception:
-        ai_summary = {
-            "summary": "Failed to generate AI summary",
-            "critical_issues": [],
-            "recommendations": []
-        }
-
-    score_data = calculate_repo_score(final_report)
 
     return {
         "repo_id": repo_id,
         "status": "completed",
         "progress": 100,
-        "report": final_report,
-        "ai_summary": ai_summary,
-        "score": score_data
+        "report": repo_analysis.report,
+        "ai_summary": repo_analysis.ai_summary,
+        "score": repo_analysis.score
     }
 
 
@@ -219,15 +210,14 @@ async def get_repo_analysis(
 
 @router.post("/ask-repo")
 async def ask_repo(
-    repo_id: str,
-    question: str,
+    request: AskRepoRequest,
     user=Depends(get_current_user)
 ):
-    chunks = query_repo(repo_id, question)
+    chunks = query_repo(request.repo_id, request.question)
 
     # FORCE INCLUDE DB_connection FILE (critical fix)
     try:
-        all_docs = collection.get(where={"repo_id": repo_id}).get("documents", [])
+        all_docs = collection.get(where={"repo_id": request.repo_id}).get("documents", [])
 
         for doc in all_docs:
             text = doc.lower()
@@ -243,14 +233,14 @@ async def ask_repo(
                     chunks.append(doc)
                 break  # only one needed
     except Exception as e:
-        print("Error fetching fallback chunks:", str(e))
+        logger.error(f"Error fetching fallback chunks: {str(e)}")
 
     # DEBUG: print FINAL chunks used
-    print("----- FINAL CHUNKS USED -----")
+    logger.info("----- FINAL CHUNKS USED -----")
     for c in chunks:
-        print(c[:300])
-        print("-----")
-    print("-----------------------------")
+        logger.info(c[:300])
+        logger.info("-----")
+    logger.info("-----------------------------")
 
     if not chunks:
         return {"answer": "No relevant context found"}
@@ -260,7 +250,25 @@ async def ask_repo(
     for i, chunk in enumerate(chunks):
         context += f"[Chunk {i+1}]\n{chunk}\n\n"
 
-    prompt = f"""
+    if request.mode in ["chat", "architecture"]:
+        prompt = f"""
+You are a senior software engineer explaining a codebase.
+
+TASK:
+- Explain concepts, architectural decisions, and general repo structure.
+- Answer the user's question clearly using the provided context.
+- You do NOT need to strictly look for bugs or issues. Be helpful and informative.
+
+Context:
+{context}
+
+Question:
+{request.question}
+
+Answer in a clear and structured format.
+"""
+    else:
+        prompt = f"""
 You are a senior software engineer reviewing a codebase.
 
 STRICT RULES:
@@ -284,7 +292,7 @@ Context:
 {context}
 
 Question:
-{question}
+{request.question}
 
 Answer in structured bullet points.
 """
@@ -298,7 +306,7 @@ Answer in structured bullet points.
     }
 
 @router.get("/export/jobs")
-def export_jobs(db: Session = Depends(get_db)):
+def export_jobs(db: Session = Depends(get_db), user=Depends(get_current_user)):
     jobs = db.query(Job).all()
 
     result = []

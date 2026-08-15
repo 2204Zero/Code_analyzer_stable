@@ -1,6 +1,16 @@
 import httpx
 import json
 from config.settings import USE_LOCAL
+import google.generativeai as genai
+import os
+import asyncio
+from dotenv import load_dotenv
+
+load_dotenv()
+
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+gemini_model = genai.GenerativeModel("gemini-2.5-flash")
 
 # GLOBAL CLIENT (fix)
 client = httpx.AsyncClient(timeout=60.0)
@@ -62,7 +72,14 @@ async def call_ollama(prompt: str):
 # ---------------- FUTURE API LLM ---------------- #
 
 async def call_api(prompt: str):
-    return "API LLM not configured yet"
+    try:
+        response = await asyncio.to_thread(
+            gemini_model.generate_content,
+            prompt
+        )
+        return response.text
+    except Exception as e:
+        return f"LLM Error: {str(e)}"
 
 
 # ---------------- MAIN ENTRY ---------------- #
