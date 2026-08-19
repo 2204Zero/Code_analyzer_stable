@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-import json
 import uuid
+from arq.connections import ArqRedis
 
 from services.github_service import clone_repo, extract_code_files
 from config.database import get_db
-from config.redis_client import redis_client
+from config.arq_client import get_arq_pool
 
 from models.db_models import User, CodeSubmission, Job, RepoAnalysis
 from models.schemas import CodeRequest, UserAuthRequest, AnalyzeRepoRequest, AskRepoRequest
@@ -13,7 +14,8 @@ from models.schemas import CodeRequest, UserAuthRequest, AnalyzeRepoRequest, Ask
 from services.aggregator import aggregate_results, calculate_repo_score
 from services.llm_aggregator import generate_final_summary
 from services.vector_store import store_repo_chunks, query_repo, collection
-from utils.llm import call_llm
+from utils.llm import call_llm, stream_llm
+import json
 
 from utils.auth import (
     hash_password,
@@ -23,6 +25,7 @@ from utils.auth import (
 )
 
 from config.logging_config import logger
+from config.rate_limiter import limiter
 
 router = APIRouter()
 
@@ -74,7 +77,8 @@ def register(request: UserAuthRequest, db: Session = Depends(get_db)):
 async def analyze_code(
     request: CodeRequest,
     db: Session = Depends(get_db),
-    user=Depends(get_current_user)
+    user=Depends(get_current_user),
+    arq_pool: ArqRedis = Depends(get_arq_pool)
 ):
     submission = CodeSubmission(code=request.code)
     db.add(submission)
@@ -90,10 +94,7 @@ async def analyze_code(
     db.commit()
     db.refresh(job)
 
-    redis_client.lpush(
-        "job_queue",
-        json.dumps({"job_id": job.id})
-    )
+    await arq_pool.enqueue_job("process_file_task", job.id)
 
     return {
         "job_id": job.id,
@@ -104,10 +105,13 @@ async def analyze_code(
 # ---------------- ANALYZE REPO ---------------- #
 
 @router.post("/analyze-repo")
+@limiter.limit("5/minute")
 async def analyze_repo(
-    request: AnalyzeRepoRequest,
+    request: Request,
+    analyze_request: AnalyzeRepoRequest,
     db: Session = Depends(get_db),
-    user=Depends(get_current_user)
+    user=Depends(get_current_user),
+    arq_pool: ArqRedis = Depends(get_arq_pool)
 ):
     # CREATE repo_id ONLY ONCE
     repo_id = str(uuid.uuid4())
@@ -118,7 +122,7 @@ async def analyze_repo(
     db.refresh(repo_analysis)
 
     # clone + extract
-    repo_path = clone_repo(request.repo_url)
+    repo_path = clone_repo(analyze_request.repo_url)
     files = extract_code_files(repo_path)
 
     # STORE EMBEDDINGS (RAG)
@@ -147,10 +151,7 @@ async def analyze_repo(
         db.commit()
         db.refresh(job)
 
-        redis_client.lpush(
-            "job_queue",
-            json.dumps({"job_id": job.id})
-        )
+        await arq_pool.enqueue_job("process_file_task", job.id)
 
         job_ids.append(job.id)
 
@@ -205,35 +206,38 @@ async def get_repo_analysis(
         "score": repo_analysis.score
     }
 
+@router.get("/repo/{repo_id}/architecture")
+@limiter.limit("60/minute")
+async def get_repo_architecture(
+    request: Request,
+    repo_id: str,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+    arq_pool: ArqRedis = Depends(get_arq_pool)
+):
+    cache_key = f"arch_graph:{repo_id}"
+    
+    cached_graph = await arq_pool.get(cache_key)
+    if cached_graph:
+        return json.loads(cached_graph)
+        
+    repo = db.query(RepoAnalysis).filter(RepoAnalysis.repo_id == repo_id).first()
+    if not repo or not repo.architecture_graph:
+        raise HTTPException(status_code=404, detail="Architecture graph not found or still processing")
+        
+    await arq_pool.setex(cache_key, 3600, json.dumps(repo.architecture_graph))
+    return repo.architecture_graph
 
 # ---------------- ASK REPO (RAG) ---------------- #
 
 @router.post("/ask-repo")
+@limiter.limit("30/minute")
 async def ask_repo(
-    request: AskRepoRequest,
+    request: Request,
+    payload: AskRepoRequest,
     user=Depends(get_current_user)
 ):
-    chunks = query_repo(request.repo_id, request.question)
-
-    # FORCE INCLUDE DB_connection FILE (critical fix)
-    try:
-        all_docs = collection.get(where={"repo_id": request.repo_id}).get("documents", [])
-
-        for doc in all_docs:
-            text = doc.lower()
-
-            if any(keyword in text for keyword in [
-                "drivermanager",
-                "getconnection",
-                "password",
-                "jdbc",
-                "connection"
-            ]):
-                if doc not in chunks:
-                    chunks.append(doc)
-                break  # only one needed
-    except Exception as e:
-        logger.error(f"Error fetching fallback chunks: {str(e)}")
+    chunks = query_repo(payload.repo_id, payload.question)
 
     # DEBUG: print FINAL chunks used
     logger.info("----- FINAL CHUNKS USED -----")
@@ -250,7 +254,7 @@ async def ask_repo(
     for i, chunk in enumerate(chunks):
         context += f"[Chunk {i+1}]\n{chunk}\n\n"
 
-    if request.mode in ["chat", "architecture"]:
+    if payload.mode in ["chat", "architecture"]:
         prompt = f"""
 You are a senior software engineer explaining a codebase.
 
@@ -263,7 +267,7 @@ Context:
 {context}
 
 Question:
-{request.question}
+{payload.question}
 
 Answer in a clear and structured format.
 """
@@ -292,18 +296,20 @@ Context:
 {context}
 
 Question:
-{request.question}
+{payload.question}
 
 Answer in structured bullet points.
 """
 
-    answer = await call_llm(prompt)
+    async def event_stream():
+        yield f"data: {json.dumps({'type': 'metadata', 'chunks_used': len(chunks), 'context_preview': chunks[:2]})}\n\n"
+        
+        async for text_chunk in stream_llm(prompt):
+            yield f"data: {json.dumps({'type': 'text', 'delta': text_chunk})}\n\n"
+            
+        yield "data: [DONE]\n\n"
 
-    return {
-        "answer": answer,
-        "chunks_used": len(chunks),
-        "context_preview": chunks[:2]
-    }
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 @router.get("/export/jobs")
 def export_jobs(db: Session = Depends(get_db), user=Depends(get_current_user)):

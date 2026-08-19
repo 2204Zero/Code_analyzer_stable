@@ -98,6 +98,8 @@ class RepoAnalysis(Base):
     report = Column(JSON, nullable=True)
     ai_summary = Column(JSON, nullable=True)
     score = Column(JSON, nullable=True)
+    architecture_graph = Column(JSON, nullable=True)
+    performance_profile = Column(JSON, nullable=True)
 
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())

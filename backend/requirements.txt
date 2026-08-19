@@ -19,5 +19,11 @@ passlib[bcrypt]==1.7.4
 bcrypt==4.0.1
 
 redis==5.0.8
+arq>=0.26.0
 
 gitpython==3.1.43
+instructor>=1.3.3
+tenacity>=8.5.0
+langchain-text-splitters
+slowapi
+structlog

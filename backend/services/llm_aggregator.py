@@ -1,5 +1,6 @@
 import json
-from utils.llm import call_llm
+from utils.llm import call_llm, call_structured_llm
+from models.llm_schemas import FinalSummaryResponse
 
 
 async def generate_final_summary(issues):
@@ -10,25 +11,12 @@ async def generate_final_summary(issues):
 
     {issues}
 
-    Return JSON with:
-    1. summary (overall code quality)
-    2. scores (code_quality, maintainability, readability, robustness) [1-10]
-    3. critical_issues (top 3)
-    4. recommendations (improvements)
-
-    Return ONLY valid JSON.
-    Do not include explanation text.
-    Do not include markdown.
-
-    Be concise.
+    Return a comprehensive summary of the overall code quality.
+    Score the code on code_quality, maintainability, readability, and robustness out of 10.
+    List the top critical issues.
+    Provide actionable recommendations.
     """
 
-    response = await call_llm(prompt)
-
-    try:
-        return json.loads(response)
-    except Exception:
-        return {
-            "summary": "Failed to parse AI response",
-            "raw": response
-        }
+    response = await call_structured_llm(prompt, response_model=FinalSummaryResponse)
+    
+    return response.model_dump()

@@ -3,6 +3,13 @@ from fastapi import FastAPI
 from typing import Optional, Dict, Any
 from contextlib import asynccontextmanager
 from rl.env import CodeAnalysisEnv
+import sys
+import os
+
+# Ensure backend modules can be imported
+sys.path.append(os.path.abspath("backend"))
+from backend.utils.llm import call_structured_llm
+from backend.models.llm_schemas import RLActionSchema
 
 
 # -----------------------------
@@ -31,40 +38,23 @@ env = CodeAnalysisEnv()
 # -----------------------------
 # SMART DEFAULT AGENT
 # -----------------------------
-def generate_default_action(state):
+async def generate_default_action(state):
     try:
-        files = str(state.get("files", "")).lower()
+        files = str(state.get("files", ""))
 
-        issues = []
-        fixes = []
+        prompt = f"""
+        You are an AI generating dynamic RL environment actions based on the current state.
+        Analyze the provided files state and intelligently identify issues and suggested fixes.
+        
+        State files:
+        {files}
+        """
+        
+        response = await call_structured_llm(prompt, response_model=RLActionSchema)
+        return response.model_dump()
 
-        if "unused" in files:
-            issues.append("unused variable")
-            fixes.append("remove unused variable")
-
-        if "hardcoded" in files or "magic number" in files:
-            issues.append("hardcoded value")
-            fixes.append("replace with constant")
-
-        if "duplicate" in files:
-            issues.append("duplicate code")
-            fixes.append("remove duplication")
-
-        # NEW BOOST
-        if "function" in files or "loop" in files or "complex" in files:
-            issues.append("code quality issue")
-            fixes.append("refactor code")
-
-        if not issues:
-            issues = ["code quality issue"]
-            fixes = ["refactor code"]
-
-        return {
-            "identified_issues": issues,
-            "suggested_fixes": fixes
-        }
-
-    except Exception:
+    except Exception as e:
+        print(f"Error generating action: {e}", flush=True)
         return {
             "identified_issues": [],
             "suggested_fixes": []
@@ -90,12 +80,12 @@ def reset():
 # STEP
 # -----------------------------
 @app.post("/step")
-def step(action: Optional[Dict[str, Any]] = None):
+async def step(action: Optional[Dict[str, Any]] = None):
     try:
         # IMPORTANT: fallback agent
         if not action:
             state = env.state()
-            action = generate_default_action(state)
+            action = await generate_default_action(state)
 
         obs, reward, done, info = env.step(action)
 

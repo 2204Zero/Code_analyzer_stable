@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
     USE_LOCAL: bool = True
     GEMINI_API_KEY: str = ""
+    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]
 
     class Config:
         env_file = [

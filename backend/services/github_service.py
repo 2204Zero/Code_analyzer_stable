@@ -1,8 +1,9 @@
 import os
 import uuid
+from pathlib import Path
 from git import Repo
 
-BASE_DIR = "repos"
+BASE_DIR = str(Path(__file__).resolve().parent.parent / "repos")
 
 
 def clone_repo(repo_url: str) -> str:
@@ -30,7 +31,7 @@ def clone_repo(repo_url: str) -> str:
 
 # ---------------- FILE EXTRACTION ---------------- #
 
-ALLOWED_EXTENSIONS = [".py", ".js", ".ts", ".java", ".cpp"]
+ALLOWED_EXTENSIONS = [".py", ".js", ".ts", ".java", ".cpp", ".md", ".txt"]
 IGNORE_DIRS = ["node_modules", ".git", "dist", "build", "__pycache__"]
 
 MAX_FILES = 50
@@ -49,7 +50,7 @@ def extract_code_files(repo_path: str):
         dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
 
         for file in files:
-            if any(file.endswith(ext) for ext in ALLOWED_EXTENSIONS):
+            if any(file.endswith(ext) for ext in ALLOWED_EXTENSIONS) or file.upper().startswith("README"):
 
                 full_path = os.path.join(root, file)
 
