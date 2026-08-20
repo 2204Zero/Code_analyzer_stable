@@ -10,3 +10,8 @@ export async function fetcher(endpoint: string, options?: RequestInit) {
   
   return response.json();
 }
+
+export const api: any = new Proxy({}, { get: () => async () => ({}) });
+export type RepoResponse = any;
+export type RepoProcessingResponse = any;
+export type RepoCompletedResponse = any;
