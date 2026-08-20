@@ -12,7 +12,7 @@ export default function DashboardPage() {
     useVertexStore.getState().fetchArchitecture("1");
   }, []);
 
-  return
+  return (
     <main className="relative w-screen h-screen overflow-hidden bg-[#09090B]">
       <TopNav />
       <LeftSidebar />
