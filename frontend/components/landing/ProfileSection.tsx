@@ -83,7 +83,7 @@ export default function ProfileSection() {
   const termLine3 = useTransform(scrollYProgress, [0.76, 0.8], [0, 1]);
 
   return (
-    <section ref={containerRef} className="relative h-[300vh] bg-[#09090B] text-white">
+    <section ref={containerRef} className="relative h-[400vh] bg-[#09090B] text-white">
       
       {/* The Sticky Canvas */}
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden px-4 md:px-8">

@@ -93,14 +93,14 @@ export default function LandingPage() {
         <InteractiveTiles />
         
         {/* Centered Content */}
-        <div className="relative z-20 flex flex-col items-center pointer-events-none mt-16">
+        <div className="relative z-20 flex flex-col items-center pointer-events-none mt-16 px-4">
           
           {/* The Massive H1 Blur Reveal */}
           <motion.h1
             initial={{ opacity: 0, filter: "blur(20px)", y: 40, scale: 0.95 }}
             animate={{ opacity: 1, filter: "blur(0px)", y: 0, scale: 1 }}
             transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }} 
-            className="text-6xl md:text-8xl font-extrabold tracking-tighter text-center text-white"
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter text-center text-white"
           >
             Map. Profile. <span className="text-white drop-shadow-[0_0_40px_rgba(255,255,255,0.4)]">Resolve.</span>
           </motion.h1>
@@ -110,7 +110,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
-            className="mt-8 text-lg md:text-xl text-zinc-500 max-w-2xl text-center font-light leading-relaxed"
+            className="mt-6 sm:mt-8 text-base sm:text-lg md:text-xl text-zinc-400 max-w-2xl text-center font-light leading-relaxed px-4"
           >
             Enterprise-grade architectural synthesis. Extract codebases into 3D WebGL, 
             isolate algorithmic bottlenecks, and let the Multi-Agent engine resolve vulnerabilities.

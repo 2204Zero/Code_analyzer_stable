@@ -72,7 +72,7 @@ export default function ResolveSection() {
   const step5Scale = useTransform(scrollYProgress, [0.6, 0.7], [0, 1]);
 
   return (
-    <section ref={containerRef} className="relative h-[300vh] bg-white text-black border-t border-zinc-200">
+    <section ref={containerRef} className="relative h-[400vh] bg-white text-black border-t border-zinc-200">
       
       {/* The Sticky Canvas */}
       <div 

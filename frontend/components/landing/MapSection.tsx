@@ -56,7 +56,7 @@ export default function MapSection() {
   const ghostScale = useTransform(scrollYProgress, [0, 1], [1, 1.2]);
 
   return (
-    <section ref={containerRef} className="relative h-[300vh] bg-zinc-50 text-black border-t border-zinc-200">
+    <section ref={containerRef} className="relative h-[400vh] bg-zinc-50 text-black border-t border-zinc-200">
       
       {/* The Sticky Canvas */}
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden px-4 md:px-8">
