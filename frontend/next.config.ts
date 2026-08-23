@@ -7,11 +7,7 @@ const nextConfig: NextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true,
-  },
+  allowedDevOrigins: ['127.0.0.1', 'http://127.0.0.1:3000'],
 };
 
 export default nextConfig;

@@ -272,7 +272,7 @@ export default function RepoDashboardPage() {
                     <p className="text-sm text-gray-500 italic">No critical issues found in the mock response.</p>
                   ) : (
                     <ul className="space-y-2">
-                      {c.ai_summary.critical_issues.map((i, idx) => (
+                      {c.ai_summary.critical_issues.map((i: any, idx: number) => (
                         <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
                           <span className="text-red-500 mt-0.5">•</span>
                           <span>{i}</span>
@@ -288,7 +288,7 @@ export default function RepoDashboardPage() {
                     <p className="text-sm text-gray-500 italic">No recommendations provided in the mock response.</p>
                   ) : (
                     <ul className="space-y-2">
-                      {c.ai_summary.recommendations.map((r, idx) => (
+                      {c.ai_summary.recommendations.map((r: any, idx: number) => (
                         <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
                           <span className="text-green-500 mt-0.5">→</span>
                           <span>{r}</span>
@@ -316,7 +316,7 @@ export default function RepoDashboardPage() {
               </div>
             ) : (
               <div className="space-y-4 overflow-y-auto pr-2" style={{ maxHeight: '400px' }}>
-                {c.report.top_issues.map((issue, idx) => (
+                {c.report.top_issues.map((issue: any, idx: number) => (
                   <div key={idx} className="bg-gray-50 rounded-md p-4 border-l-4 border-orange-400">
                     <div className="flex justify-between items-start mb-2 gap-4">
                       <h4 className="font-semibold text-gray-900 text-sm leading-tight">{issue.issue}</h4>

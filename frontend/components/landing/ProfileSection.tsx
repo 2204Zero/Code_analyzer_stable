@@ -33,6 +33,7 @@ export default function ProfileSection() {
   
   // 4. The Threat Detection (Turns stark red)
   // Explicitly clamping arrays with [0, 0.59, 0.62, 1] to prevent Framer Motion from extrapolating past 1.0
+  const hudOpacity = useTransform(scrollYProgress, [0.1, 0.3], [0, 1]);
   const targetBorder = useTransform(scrollYProgress, [0, 0.59, 0.62, 1], ["#27272a", "#27272a", "#ef4444", "#ef4444"]);
   const targetText = useTransform(scrollYProgress, [0, 0.59, 0.62, 1], ["#a1a1aa", "#a1a1aa", "#f87171", "#f87171"]);
   
@@ -102,7 +103,7 @@ export default function ProfileSection() {
           }}
         />
 
-        <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-12 z-10">
+        <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 z-10 relative">
           
           {/* Left Column: Typography & Narrative */}
           <div className="flex flex-col gap-6 relative z-20">
@@ -110,7 +111,7 @@ export default function ProfileSection() {
               <motion.div style={{ backgroundColor: phaseColor }} className="w-8 h-[1px]" />
               <motion.span style={{ color: phaseColor }} className="font-mono text-sm tracking-[0.2em] uppercase font-semibold">Phase 02</motion.span>
             </div>
-            <h2 className="text-6xl md:text-8xl font-extrabold tracking-tighter text-white leading-[0.9]">
+            <h2 className="text-5xl lg:text-8xl font-extrabold tracking-tighter text-white leading-[0.9]">
               Profile.
             </h2>
             <p className="text-2xl md:text-3xl text-zinc-300 font-light max-w-md tracking-tight leading-snug mt-4">
@@ -125,10 +126,10 @@ export default function ProfileSection() {
             {/* Swarm Telemetry HUD (Moved to Left Column to prevent layout chaos) */}
             <motion.div 
               style={{ 
-                opacity: useTransform(scrollYProgress, [0.1, 0.3], [0, 1]),
+                opacity: hudOpacity,
                 borderColor: hudBorder
               }}
-              className="mt-8 flex flex-col gap-4 font-mono text-xs tracking-widest bg-[#18181b]/80 p-6 w-full max-w-md border-2 rounded-xl shadow-2xl backdrop-blur-md"
+              className="mt-4 lg:mt-8 flex flex-col gap-4 font-mono text-xs tracking-widest bg-[#18181b]/80 p-6 w-full max-w-md border-2 rounded-xl shadow-2xl backdrop-blur-md"
             >
               <div className="flex justify-between gap-8 text-zinc-500">
                 <span>AGENTS_DISPATCHED</span>
@@ -149,7 +150,7 @@ export default function ProfileSection() {
                 {/* HUNTING STATE */}
                 <motion.span 
                   style={{ opacity: huntingOpacity }}
-                  className="absolute right-0 text-emerald-500 font-bold flex items-center gap-2 text-sm"
+                  className="absolute right-0 text-emerald-500 font-bold flex items-center gap-2 text-[10px] lg:text-sm"
                 >
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   HUNTING_
@@ -157,7 +158,7 @@ export default function ProfileSection() {
                 {/* THREAT LOCK STATE */}
                 <motion.span 
                   style={{ opacity: threatOpacity }}
-                  className="absolute right-0 text-red-500 font-bold flex items-center gap-2 text-sm drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]"
+                  className="absolute right-0 text-red-500 font-bold flex items-center gap-2 text-[10px] lg:text-sm drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]"
                 >
                   <span className="w-2 h-2 rounded-full bg-red-500" />
                   THREAT_LOCK
@@ -165,118 +166,119 @@ export default function ProfileSection() {
               </div>
             </motion.div>
           </div>
-
-          {/* Right Column: The Scroll-Jacked 3D Animation */}
-          <div className="relative w-full h-[600px] flex items-center justify-center">
+          {/* Right Column: The Scroll-Jacked 3D Animation */}
+          <div className="relative w-full h-[350px] lg:h-[600px] flex items-center justify-center">
             
-            {/* The Sonar/Radar Sweep */}
-            <motion.div 
-              style={{ scale: radarScale, opacity: radarOpacity }}
-              className="absolute w-[200px] h-[200px] rounded-full border border-emerald-500/50 bg-emerald-500/5 z-0"
-            />
-            <motion.div 
-              style={{ scale: radarScale, opacity: radarOpacity }}
-              className="absolute w-[100px] h-[100px] rounded-full border border-emerald-500/30 z-0"
-            />
+            <div className="relative w-full h-full flex items-center justify-center scale-[0.55] sm:scale-75 lg:scale-100 origin-center">
+              {/* The Sonar/Radar Sweep */}
+              <motion.div 
+                style={{ scale: radarScale, opacity: radarOpacity }}
+                className="absolute w-[200px] h-[200px] rounded-full border border-emerald-500/50 bg-emerald-500/5 z-0"
+              />
+              <motion.div 
+                style={{ scale: radarScale, opacity: radarOpacity }}
+                className="absolute w-[100px] h-[100px] rounded-full border border-emerald-500/30 z-0"
+              />
 
-            {/* The Safe Nodes Cluster (Parallax Z-Axis) */}
-            <motion.div 
-              style={{ opacity: safeNodesOpacity, scale: safeNodesScale, y: safeNodesY }}
-              className="absolute z-10 w-full h-full flex items-center justify-center pointer-events-none"
-            >
-              <div className="absolute top-[20%] left-[20%] bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex items-center gap-3 w-44 shadow-lg">
-                <Box className="w-4 h-4 text-zinc-500" />
-                <span className="font-mono text-xs text-zinc-400">utils/parser.ts</span>
-              </div>
-              <div className="absolute top-[70%] left-[30%] bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex items-center gap-3 w-44 shadow-lg">
-                <Activity className="w-4 h-4 text-zinc-500" />
-                <span className="font-mono text-xs text-zinc-400">lib/logger.ts</span>
-              </div>
-              <div className="absolute top-[30%] right-[20%] bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex items-center gap-3 w-44 shadow-lg">
-                <FileCode className="w-4 h-4 text-zinc-500" />
-                <span className="font-mono text-xs text-zinc-400">types/index.d.ts</span>
-              </div>
-            </motion.div>
+              {/* The Safe Nodes Cluster (Parallax Z-Axis) */}
+              <motion.div 
+                style={{ opacity: safeNodesOpacity, scale: safeNodesScale, y: safeNodesY }}
+                className="absolute z-10 w-full h-full flex items-center justify-center pointer-events-none"
+              >
+                <div className="absolute top-[20%] left-[20%] bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex items-center gap-3 w-44 shadow-lg">
+                  <Box className="w-4 h-4 text-zinc-500" />
+                  <span className="font-mono text-xs text-zinc-400">utils/parser.ts</span>
+                </div>
+                <div className="absolute top-[70%] left-[30%] bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex items-center gap-3 w-44 shadow-lg">
+                  <Activity className="w-4 h-4 text-zinc-500" />
+                  <span className="font-mono text-xs text-zinc-400">lib/logger.ts</span>
+                </div>
+                <div className="absolute top-[30%] right-[20%] bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex items-center gap-3 w-44 shadow-lg">
+                  <FileCode className="w-4 h-4 text-zinc-500" />
+                  <span className="font-mono text-xs text-zinc-400">types/index.d.ts</span>
+                </div>
+              </motion.div>
 
-            {/* The Target Node (The Vulnerability) */}
-            <motion.div 
-              style={{ 
-                x: targetX, 
-                y: targetY, 
-                scale: targetScale, 
-                borderColor: targetBorder,
-                boxShadow: targetShadow
-              }}
-              className="absolute z-30 bg-[#09090b] border-2 rounded-xl p-4 flex flex-col w-64 shadow-2xl overflow-hidden"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <motion.div style={{ color: targetText }}>
-                    <ShieldAlert className="w-5 h-5" />
-                  </motion.div>
-                  <motion.span style={{ color: targetText }} className="font-mono text-sm font-bold tracking-tight">
-                    api/webhook.ts
+              {/* The Target Node (The Vulnerability) */}
+              <motion.div 
+                style={{ 
+                  x: targetX, 
+                  y: targetY, 
+                  scale: targetScale, 
+                  borderColor: targetBorder,
+                  boxShadow: targetShadow
+                }}
+                className="absolute z-30 bg-[#09090b] border-2 rounded-xl p-4 flex flex-col w-64 shadow-2xl overflow-hidden"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <motion.div style={{ color: targetText }}>
+                      <ShieldAlert className="w-5 h-5" />
+                    </motion.div>
+                    <motion.span style={{ color: targetText }} className="font-mono text-sm font-bold tracking-tight">
+                      api/webhook.ts
+                    </motion.span>
+                  </div>
+                  <motion.span style={{ color: targetText }} className="text-[10px] font-mono font-bold border border-current px-1.5 py-0.5 rounded">
+                    O(N²)
                   </motion.span>
                 </div>
-                <motion.span style={{ color: targetText }} className="text-[10px] font-mono font-bold border border-current px-1.5 py-0.5 rounded">
-                  O(N²)
-                </motion.span>
-              </div>
-              
-              {/* The X-Ray Code Reveal */}
-              <motion.div 
-                style={{ height: codeHeight, opacity: codeOpacity }} 
-                className="mt-3 pt-3 border-t border-zinc-800/50 font-mono text-[9px] leading-[1.6]"
-              >
-                <div className="text-zinc-500">export async function handle(req) {"{"}</div>
-                <div className="text-zinc-500 pl-2">const users = await getUsers();</div>
-                <div className="text-zinc-500 pl-2">users.forEach(user =&gt; {"{"}</div>
                 
-                {/* The highlighted bottleneck */}
-                <div className="text-red-400 bg-red-500/10 px-2 py-0.5 rounded mt-0.5 mb-0.5 font-bold border-l-2 border-red-500 -ml-1 pl-3">
-                  // Bottleneck: DB query inside loop
-                  const logs = await getLogs(user.id);
+                {/* The X-Ray Code Reveal */}
+                <motion.div 
+                  style={{ height: codeHeight, opacity: codeOpacity }} 
+                  className="mt-3 pt-3 border-t border-zinc-800/50 font-mono text-[9px] leading-[1.6] w-[85vw] lg:w-96"
+                >
+                  <div className="text-zinc-500">export async function handle(req) {"{"}</div>
+                  <div className="text-zinc-500 pl-2">const users = await getUsers();</div>
+                  <div className="text-zinc-500 pl-2">users.forEach(user =&gt; {"{"}</div>
+                  
+                  {/* The highlighted bottleneck */}
+                  <div className="text-red-400 bg-red-500/10 px-2 py-0.5 rounded mt-0.5 mb-0.5 font-bold border-l-2 border-red-500 -ml-1 pl-3">
+                    // Bottleneck: DB query inside loop
+                    const logs = await getLogs(user.id);
+                  </div>
+                  
+                  <div className="text-zinc-500 pl-2">{"}"});</div>
+                  <div className="text-zinc-500">{"}"}</div>
+                </motion.div>
+
+                {/* Data Hemorrhage Particles */}
+                <motion.div style={{ opacity: particleOpacity }} className="absolute inset-0 pointer-events-none">
+                  <div className="absolute top-2 right-2 w-1 h-1 bg-red-500 rounded-full animate-ping" />
+                  <div className="absolute bottom-4 -left-2 w-1.5 h-1.5 bg-red-500 rounded-full animate-bounce delay-75" />
+                  <div className="absolute top-1/2 -right-1 w-1 h-1 bg-red-400 rounded-full animate-pulse delay-150" />
+                </motion.div>
+
+              </motion.div>
+
+              {/* The Diagnosis Terminal (Live Typing Sync) */}
+              <motion.div 
+                style={{ opacity: terminalOpacity, y: terminalY }} 
+                className="absolute left-[55%] md:left-[60%] top-[45%] bg-black border border-red-500/30 p-5 rounded-lg w-72 md:w-80 shadow-2xl z-40 backdrop-blur-xl"
+              >
+                <div className="flex items-center gap-2 mb-4 border-b border-zinc-800 pb-2">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-red-500 text-xs font-mono font-bold tracking-widest">THREAT DETECTED</span>
                 </div>
                 
-                <div className="text-zinc-500 pl-2">{"}"});</div>
-                <div className="text-zinc-500">{"}"}</div>
+                <div className="text-zinc-400 font-mono text-[11px] leading-relaxed flex flex-col gap-2">
+                  <motion.div style={{ opacity: termLine1 }}>
+                    <span className="text-emerald-500">&gt;</span> Profiling AST paths...
+                  </motion.div>
+                  
+                  <motion.div style={{ opacity: termLine2 }}>
+                    <span className="text-emerald-500">&gt;</span> Analyzing runtime complexity...
+                  </motion.div>
+                  
+                  <motion.div style={{ opacity: termLine3 }} className="text-red-400 font-semibold bg-red-500/5 p-2 rounded border border-red-500/10">
+                    [CRITICAL] SQL query embedded in array iteration (Line 142). Execution time scales exponentially (O(N²)) with user payload.
+                  </motion.div>
+                </div>
               </motion.div>
 
-              {/* Data Hemorrhage Particles */}
-              <motion.div style={{ opacity: particleOpacity }} className="absolute inset-0 pointer-events-none">
-                 <div className="absolute top-2 right-2 w-1 h-1 bg-red-500 rounded-full animate-ping" />
-                 <div className="absolute bottom-4 -left-2 w-1.5 h-1.5 bg-red-500 rounded-full animate-bounce delay-75" />
-                 <div className="absolute top-1/2 -right-1 w-1 h-1 bg-red-400 rounded-full animate-pulse delay-150" />
-              </motion.div>
-
-            </motion.div>
-
-            {/* The Diagnosis Terminal (Live Typing Sync) */}
-            <motion.div 
-              style={{ opacity: terminalOpacity, y: terminalY }} 
-              className="absolute left-[55%] md:left-[60%] top-[45%] bg-black border border-red-500/30 p-5 rounded-lg w-72 md:w-80 shadow-2xl z-40 backdrop-blur-xl"
-            >
-              <div className="flex items-center gap-2 mb-4 border-b border-zinc-800 pb-2">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-red-500 text-xs font-mono font-bold tracking-widest">THREAT DETECTED</span>
-              </div>
-              
-              <div className="text-zinc-400 font-mono text-[11px] leading-relaxed flex flex-col gap-2">
-                <motion.div style={{ opacity: termLine1 }}>
-                  <span className="text-emerald-500">&gt;</span> Profiling AST paths...
-                </motion.div>
-                
-                <motion.div style={{ opacity: termLine2 }}>
-                  <span className="text-emerald-500">&gt;</span> Analyzing runtime complexity...
-                </motion.div>
-                
-                <motion.div style={{ opacity: termLine3 }} className="text-red-400 font-semibold bg-red-500/5 p-2 rounded border border-red-500/10">
-                  [CRITICAL] SQL query embedded in array iteration (Line 142). Execution time scales exponentially (O(N²)) with user payload.
-                </motion.div>
-              </div>
-            </motion.div>
-
+            </div>
           </div>
 
         </div>

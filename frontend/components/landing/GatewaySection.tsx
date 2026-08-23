@@ -15,11 +15,11 @@ export default function GatewaySection() {
         }} 
       />
       
-      <div className="flex flex-col items-center text-center gap-6 relative z-10 max-w-3xl mb-16">
-        <h2 className="text-5xl md:text-7xl font-extrabold tracking-tighter text-white">
+      <div className="flex flex-col items-center text-center gap-4 lg:gap-6 relative z-10 max-w-3xl mb-12 lg:mb-16">
+        <h2 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tighter text-white">
           Deploy the Swarm.
         </h2>
-        <p className="text-xl text-zinc-400 font-light">
+        <p className="text-lg lg:text-xl text-zinc-400 font-light px-4">
           Input your repository. Let the AI map the architecture, isolate the bottlenecks, and synthesize the optimal patches.
         </p>
       </div>
@@ -28,7 +28,7 @@ export default function GatewaySection() {
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="w-full max-w-2xl bg-black border border-zinc-800 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(16,185,129,0.05)] relative z-10"
+        className="w-[90vw] md:w-full max-w-2xl bg-black border border-zinc-800 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(16,185,129,0.05)] relative z-10"
       >
         {/* Terminal Header */}
         <div className="bg-[#18181b] px-4 py-3 border-b border-zinc-800 flex items-center gap-2">

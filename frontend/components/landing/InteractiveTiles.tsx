@@ -9,6 +9,8 @@ export default function InteractiveTiles() {
   // Reduced the glowing area radius based on feedback
   const radius = 200;
 
+  const maskImage = useMotionTemplate`radial-gradient(${radius}px circle at ${mouseX}px ${mouseY}px, black 0%, transparent 100%)`;
+
   return (
     <div 
       className="absolute inset-0 w-full h-full overflow-hidden hidden md:block z-0 pointer-events-auto"
@@ -24,8 +26,8 @@ export default function InteractiveTiles() {
       <motion.div 
         className="absolute inset-0 w-full h-full"
         style={{
-          WebkitMaskImage: useMotionTemplate`radial-gradient(${radius}px circle at ${mouseX}px ${mouseY}px, black 0%, transparent 100%)`,
-          maskImage: useMotionTemplate`radial-gradient(${radius}px circle at ${mouseX}px ${mouseY}px, black 0%, transparent 100%)`
+          WebkitMaskImage: maskImage,
+          maskImage: maskImage
         }}
       >
         <svg width="100%" height="100%">
