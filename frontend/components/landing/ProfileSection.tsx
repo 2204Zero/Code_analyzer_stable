@@ -14,10 +14,10 @@ export default function ProfileSection() {
 
   // --- 1. The Sonar/Radar Ping ---
   const radarScale = useTransform(scrollYProgress, [0.1, 0.4], [0, 4]);
-  const radarOpacity = useTransform(scrollYProgress, [0.1, 0.25, 0.4], [0, 0.8, 0]);
+  const radarOpacity = useTransform(scrollYProgress, [0.1, 0.25], [0, 0.8]);
 
   // --- 2. Z-Axis Parallax (Depth of Field for Safe Nodes) ---
-  const safeNodesOpacity = useTransform(scrollYProgress, [0.4, 0.6], [1, 0]);
+  const safeNodesOpacity = useTransform(scrollYProgress, [0.4, 0.6], [1, 0.2]);
   const safeNodesScale = useTransform(scrollYProgress, [0.4, 0.6], [1, 0.4]);
   const safeNodesY = useTransform(scrollYProgress, [0.4, 0.6], [0, -200]);
 

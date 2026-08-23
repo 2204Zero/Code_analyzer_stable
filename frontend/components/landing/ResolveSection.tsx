@@ -27,7 +27,7 @@ export default function ResolveSection() {
   // 3. The Deletion Strike-through (Strikes out the red code once fixed)
   const strikeOpacity = useTransform(scrollYProgress, [0.55, 0.65], [0, 1]);
   const strikeWidth = useTransform(scrollYProgress, [0.55, 0.65], ["0%", "100%"]);
-  const redBlockOpacity = useTransform(scrollYProgress, [0.55, 0.65], [1, 0.4]);
+  const redBlockOpacity = useTransform(scrollYProgress, [0.55, 0.65], [1, 0.8]);
 
   // 4. The Mechanical Stamp (Locks into place)
   const stampScale = useTransform(scrollYProgress, [0.7, 0.8], [3, 1]);

@@ -19,7 +19,7 @@ export default function MapSection() {
 
   // 2. The Scanner Line (Sweeps over the files to "parse" them)
   const scanlineY = useTransform(scrollYProgress, [0.1, 0.4], ["-20%", "120%"]);
-  const scanlineOpacity = useTransform(scrollYProgress, [0.1, 0.2, 0.3, 0.4], [0, 1, 1, 0]);
+  const scanlineOpacity = useTransform(scrollYProgress, [0.1, 0.2], [0, 1]);
 
   // 3. 3D Depth & Scattering
   const scatterScale = useTransform(scrollYProgress, [0.2, 0.5], [0.9, 1]);

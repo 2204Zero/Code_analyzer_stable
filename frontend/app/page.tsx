@@ -24,7 +24,25 @@ export default function LandingPage() {
 
   return (
     <main className="relative w-screen bg-white">
-      
+      {/* Premium Branding Header */}
+      <header className="fixed top-0 left-0 w-full px-4 md:px-8 py-4 flex items-center justify-between z-[100] bg-[#09090b]/80 backdrop-blur-xl border-b border-white/5">
+        <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Hexagon className="w-7 h-7 text-white" />
+          <span className="font-extrabold text-2xl tracking-tighter text-white">Vertex.AI</span>
+        </a>
+        <div className="hidden md:flex items-center gap-8">
+          <nav className="flex gap-6 text-sm font-medium text-zinc-400">
+            <a href="/" className="hover:text-white transition-colors">Platform</a>
+            <a href="/engine" className="hover:text-white transition-colors">Engine</a>
+            <span className="hover:text-white transition-colors cursor-default">Enterprise</span>
+          </nav>
+          <div className="h-4 w-[1px] bg-zinc-800" />
+          <button className="text-sm font-bold bg-white text-black px-5 py-2 rounded-full hover:bg-zinc-200 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+            Start Building
+          </button>
+        </div>
+      </header>
+
       {/* --- THE BRUTALIST SCROLL HUD --- */}
       <div className="fixed top-32 bottom-32 left-0 w-16 md:w-24 z-[100] pointer-events-none flex flex-col items-center hidden lg:flex mix-blend-difference">
         
@@ -67,24 +85,7 @@ export default function LandingPage() {
       */}
       <div className="relative z-10 flex flex-col items-center justify-center h-screen px-4 overflow-hidden bg-[#09090B] text-white">
         
-        {/* Premium Branding Header */}
-        <header className="absolute top-0 left-0 w-full px-8 py-6 flex items-center justify-between z-50 bg-gradient-to-b from-[#09090B] to-transparent">
-          <div className="flex items-center gap-3">
-            <Hexagon className="w-7 h-7 text-white" />
-            <span className="font-extrabold text-2xl tracking-tighter text-white">Vertex.AI</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8">
-            <nav className="flex gap-6 text-sm font-medium text-zinc-400">
-              <a href="#" className="hover:text-white transition-colors">Platform</a>
-              <a href="#" className="hover:text-white transition-colors">Engine</a>
-              <a href="#" className="hover:text-white transition-colors">Enterprise</a>
-            </nav>
-            <div className="h-4 w-[1px] bg-zinc-800" />
-            <button className="text-sm font-bold bg-white text-black px-5 py-2 rounded-full hover:bg-zinc-200 transition-colors">
-              Start Building
-            </button>
-          </div>
-        </header>
+        
 
         {/* Left Side: Earth Curvature */}
         <HeatmapBackground />
@@ -102,7 +103,7 @@ export default function LandingPage() {
             transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }} 
             className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter text-center text-white"
           >
-            Map. Profile. <span className="text-white drop-shadow-[0_0_40px_rgba(255,255,255,0.4)]">Resolve.</span>
+            Map. Profile. <span className="text-white">Resolve.</span>
           </motion.h1>
 
           {/* The Subtitle Fade-in */}
