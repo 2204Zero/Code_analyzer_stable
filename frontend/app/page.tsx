@@ -93,25 +93,40 @@ export default function LandingPage() {
         {/* Right Side: Proximity Hover Grid */}
         <InteractiveTiles />
         
-        {/* Centered Content */}
-        <div className="relative z-20 flex flex-col items-center pointer-events-none mt-16 px-4">
+        {/* Right-Shifted Content (Clears the Heatmap Head on the left) */}
+        <div className="relative z-20 flex flex-col items-start pointer-events-none mt-16 w-full max-w-7xl mx-auto px-8 md:pl-[45%] lg:pl-[50%]">
           
-          {/* The Massive H1 Blur Reveal */}
-          <motion.h1
-            initial={{ opacity: 0, filter: "blur(20px)", y: 40, scale: 0.95 }}
-            animate={{ opacity: 1, filter: "blur(0px)", y: 0, scale: 1 }}
-            transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }} 
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter text-center text-white"
-          >
-            Map. Profile. <span className="text-white">Resolve.</span>
-          </motion.h1>
+          {/* Stacked Title with Trailing Effect */}
+          <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold tracking-tighter text-left text-white flex flex-col gap-2 md:gap-4">
+            <motion.span
+              initial={{ opacity: 0, filter: "blur(20px)", x: -40 }}
+              animate={{ opacity: 1, filter: "blur(0px)", x: 0 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+            >
+              Map.
+            </motion.span>
+            <motion.span
+              initial={{ opacity: 0, filter: "blur(20px)", x: -40 }}
+              animate={{ opacity: 1, filter: "blur(0px)", x: 0 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
+            >
+              Profile.
+            </motion.span>
+            <motion.span
+              initial={{ opacity: 0, filter: "blur(20px)", x: -40 }}
+              animate={{ opacity: 1, filter: "blur(0px)", x: 0 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.5 }}
+            >
+              Resolve.
+            </motion.span>
+          </h1>
 
-          {/* The Subtitle Fade-in */}
+          {/* The Subtitle Fade-in (Aligned to the new title) */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
-            className="mt-6 sm:mt-8 text-base sm:text-lg md:text-xl text-zinc-400 max-w-2xl text-center font-light leading-relaxed px-4"
+            transition={{ duration: 1, delay: 0.8, ease: "easeOut" }}
+            className="mt-8 text-base sm:text-lg md:text-xl text-zinc-400 max-w-xl text-left font-light leading-relaxed"
           >
             Enterprise-grade architectural synthesis. Extract codebases into 3D WebGL, 
             isolate algorithmic bottlenecks, and let the Multi-Agent engine resolve vulnerabilities.
