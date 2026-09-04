@@ -1,0 +1,557 @@
+"use client";
+
+import { useState, useEffect, memo } from "react";
+import { Hexagon, Sparkles, Cpu } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Configuration for the CUDA Core Matrix
+const COLS = 20;
+const ROWS = 8;
+const TOTAL_CELLS = COLS * ROWS;
+const targetRepo = "https://github.com/agentic-ai/core-engine";
+const hexChars = "0123456789ABCDEF!@#$%&*";
+const TYPING_SPEED = 45; // ms per character
+
+// ----------------------------------------------------------------------
+// Custom Classic Cartoon Hand Cursor (Matches user's exact image)
+// ----------------------------------------------------------------------
+const CartoonHandCursor = () => (
+  <svg width="48" height="48" viewBox="0 0 100 100" className="drop-shadow-2xl origin-top-left -rotate-12">
+    <path 
+      d="M35 55 V20 C35 12 47 12 47 20 V38 C47 32 59 32 59 38 C59 35 71 35 71 42 C71 38 83 38 83 48 V55 C83 75 70 85 55 85 H40 C30 85 22 75 18 65 L12 55 C8 45 20 38 28 48 L35 55 Z" 
+      fill="white" 
+      stroke="black" 
+      strokeWidth="5" 
+      strokeLinejoin="round"
+    />
+    <path 
+      d="M47 60 V72 M57 60 V72 M67 60 V72" 
+      stroke="black" 
+      strokeWidth="4" 
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// ----------------------------------------------------------------------
+// Memoized 3D Cell Component (Flat Grid, 3D Processing Pop)
+// ----------------------------------------------------------------------
+const CudaCell = memo(({ data }: { data?: { active: boolean; tokenChar?: string } }) => {
+  const active = data?.active || false;
+  const tokenChar = data?.tokenChar;
+
+  const [displayChar, setDisplayChar] = useState<string | undefined>(undefined);
+  const [isCrunching, setIsCrunching] = useState(false);
+
+  useEffect(() => {
+    if (active && tokenChar) {
+      setIsCrunching(true);
+      let ticks = 0;
+      const crunchInterval = setInterval(() => {
+        setDisplayChar(hexChars[Math.floor(Math.random() * hexChars.length)]);
+        ticks++;
+        if (ticks > 25) { 
+          clearInterval(crunchInterval);
+          setIsCrunching(false);
+          setDisplayChar(tokenChar);
+        }
+      }, 50);
+
+      const spikeInterval = setInterval(() => {
+        if (Math.random() > 0.95) { 
+          setIsCrunching(true);
+          let spikeTicks = 0;
+          const shortCrunch = setInterval(() => {
+            setDisplayChar(hexChars[Math.floor(Math.random() * hexChars.length)]);
+            spikeTicks++;
+            if (spikeTicks > 10) {
+              clearInterval(shortCrunch);
+              setIsCrunching(false);
+              setDisplayChar(tokenChar);
+            }
+          }, 50);
+        }
+      }, 2000);
+
+      return () => {
+        clearInterval(crunchInterval);
+        clearInterval(spikeInterval);
+      };
+    } else {
+      setDisplayChar(undefined);
+    }
+  }, [active, tokenChar]);
+
+  return (
+    <motion.div
+      style={{ transformStyle: "preserve-3d" }}
+      animate={{
+        z: active ? (isCrunching ? 60 : 0) : 0,
+        scale: active ? (isCrunching ? 1.15 : 1) : 1,
+        backgroundColor: active 
+          ? (isCrunching ? "rgba(16, 185, 129, 0.4)" : "rgba(16, 185, 129, 0.05)") 
+          : "rgba(10, 10, 10, 0.8)",
+        boxShadow: active 
+          ? (isCrunching 
+              ? "0 30px 60px rgba(16, 185, 129, 0.6), inset 0 0 20px rgba(16,185,129,0.8)" 
+              : "0 0 15px rgba(16, 185, 129, 0.15), inset 0 0 5px rgba(16,185,129,0.2)") 
+          : "0 0 0px rgba(0,0,0,0), inset 0 0 0px rgba(0,0,0,0)",
+        borderColor: active 
+          ? (isCrunching ? "rgba(16, 185, 129, 1)" : "rgba(16, 185, 129, 0.2)") 
+          : "rgba(255, 255, 255, 0.05)",
+      }}
+      transition={{ duration: isCrunching ? 0.05 : 1.2, type: "spring", stiffness: 300, damping: 25 }}
+      className="relative aspect-square w-full rounded-md border flex items-center justify-center backdrop-blur-md"
+    >
+      <AnimatePresence>
+        {tokenChar && !active && (
+          <motion.div
+            initial={{ y: -800, opacity: 0, scale: 3 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.5 }}
+            transition={{ duration: 0.8, ease: "easeIn" }}
+            className="absolute font-mono text-3xl font-bold text-white drop-shadow-[0_0_20px_rgba(16,185,129,1)]"
+          >
+            {tokenChar}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {active && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5, z: 0 }}
+            animate={{ opacity: 1, scale: 1, z: isCrunching ? 40 : 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className={`absolute font-mono text-lg md:text-2xl font-bold transition-colors duration-75 ${
+              isCrunching 
+                ? "text-emerald-300 drop-shadow-[0_0_15px_rgba(16,185,129,1)]" 
+                : "text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.4)]"
+            }`}
+          >
+            {displayChar}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+});
+CudaCell.displayName = "CudaCell";
+
+// ----------------------------------------------------------------------
+// Main Page Component
+// ----------------------------------------------------------------------
+export default function EnginePage() {
+  const [phase, setPhase] = useState<
+    "INITIAL" | "TYPING" | "ZOOM_OUT" | "CURSOR_IN" | "PRESSING" |
+    "SCENE_TRANSITION" | "HERO_TOKEN_FOCUS" | "HERO_TOKEN_FALLING" | 
+    "IMPACT" | "MATRIX_REVEAL" | "MATRIX_FILLED" | "COMPLETE"
+  >("INITIAL");
+
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [typedText, setTypedText] = useState("");
+  const [cells, setCells] = useState<Record<number, { active: boolean; tokenChar?: string }>>({});
+
+  // Hero Token Extraction
+  const heroChar = targetRepo.includes("core-engine") ? "c" : 
+                   (targetRepo.match(/github\.com\/[^\/]+\/([a-zA-Z])/) ? targetRepo.match(/github\.com\/[^\/]+\/([a-zA-Z])/)![1] : 
+                   (targetRepo.match(/[a-zA-Z]/)?.[0] || 'x'));
+
+  const MATRIX_TOTAL = 64;
+  const CENTER_CELL = 35; 
+
+  const START_X = 35;
+  const END_X = -25;
+  const panOffset = START_X - (typedText.length * ((START_X - END_X) / Math.max(1, targetRepo.length)));
+  const currentX = phase === "INITIAL" ? START_X : (phase === "TYPING" ? panOffset : 0);
+
+  // 1. Start sequence
+  useEffect(() => {
+    const timer = setTimeout(() => setPhase("TYPING"), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 2. Type while massively zoomed in
+  useEffect(() => {
+    if (phase !== "TYPING") return;
+    let i = 0;
+    const typingInterval = setInterval(() => {
+      setTypedText(targetRepo.slice(0, i + 1));
+      i++;
+      if (i === targetRepo.length) {
+        clearInterval(typingInterval);
+        setTimeout(() => setPhase("ZOOM_OUT"), 500); 
+      }
+    }, TYPING_SPEED); 
+    return () => clearInterval(typingInterval);
+  }, [phase]);
+
+  // 3. Zoom Out / Cursor
+  useEffect(() => {
+    if (phase === "ZOOM_OUT") {
+      const t = setTimeout(() => setPhase("CURSOR_IN"), 800);
+      return () => clearTimeout(t);
+    }
+    if (phase === "CURSOR_IN") {
+      const t = setTimeout(() => setPhase("PRESSING"), 700);
+      return () => clearTimeout(t);
+    }
+  }, [phase]);
+
+  // 5. Cursor physically clicks the button
+  useEffect(() => {
+    if (phase !== "PRESSING") return;
+    const timer = setTimeout(() => {
+      setPhase("SCENE_TRANSITION");
+      setIsAnimating(true); // START MASTER TIMELINE
+    }, 120); 
+    return () => clearTimeout(timer);
+  }, [phase]);
+
+  // 6. Stage 2: The Cinematic Hero Token Skydive (Master Timeline)
+  useEffect(() => {
+    if (!isAnimating) return;
+
+    console.log("Token animation phase: hero-token-focus");
+
+    const timers = [
+      setTimeout(() => {
+        console.log("Token animation phase: hero-token-falling");
+        setPhase("HERO_TOKEN_FALLING");
+      }, 600),
+      setTimeout(() => {
+        console.log("Token animation phase: impact");
+        setPhase("IMPACT");
+      }, 2000),
+      setTimeout(() => {
+        console.log("Token animation phase: matrix-reveal");
+        setPhase("MATRIX_REVEAL");
+      }, 2400),
+      setTimeout(() => {
+        console.log("Token animation phase: matrix-filled");
+        setPhase("MATRIX_FILLED");
+      }, 3300),
+      setTimeout(() => {
+        console.log("Token animation phase: complete");
+        setPhase("COMPLETE");
+      }, 4000),
+    ];
+
+    return () => timers.forEach(clearTimeout);
+  }, [isAnimating]);
+
+  // 7. Stage 3: Populate remaining tokens into Matrix
+  useEffect(() => {
+    if (phase !== "MATRIX_FILLED") return;
+    
+    setCells((prev) => ({ ...prev, [CENTER_CELL]: { active: true, tokenChar: heroChar } }));
+    
+    let i = 0;
+    const usedCells = new Set<number>([CENTER_CELL]);
+    const charsToPopulate = targetRepo.replace(heroChar, "").split("");
+
+    const fillInterval = setInterval(() => {
+      if (i >= charsToPopulate.length) {
+        clearInterval(fillInterval);
+        return;
+      }
+      const char = charsToPopulate[i];
+      let targetCell: number;
+      do {
+        targetCell = Math.floor(Math.random() * MATRIX_TOTAL);
+      } while (usedCells.has(targetCell) && usedCells.size < MATRIX_TOTAL);
+      usedCells.add(targetCell);
+
+      setCells((prev) => ({ ...prev, [targetCell]: { active: false, tokenChar: char } }));
+      setTimeout(() => {
+        setCells((prev) => ({ ...prev, [targetCell]: { active: true, tokenChar: char } }));
+      }, 150);
+      i++;
+    }, 40);
+
+    return () => clearInterval(fillInterval);
+  }, [phase, heroChar]);
+
+  const heroTokenVariants = {
+    initial: { scale: 0.5, opacity: 0, x: 0, y: 0, rotate: 0 },
+    focus: {
+      x: 0,
+      y: 0,
+      scale: 3.5,
+      rotate: 0,
+      opacity: 1,
+      transition: { duration: 0.45, ease: "easeInOut" }
+    },
+    falling: {
+      x: [0, 18, -12, 40],
+      y: [0, 90, 210, 330],
+      scale: [3.5, 3.2, 2.8, 2.4],
+      rotate: [0, -10, 8, 18],
+      opacity: 1,
+      transition: {
+        duration: 1.4,
+        ease: [0.22, 1, 0.36, 1],
+      },
+    },
+    impact: {
+      x: 40,
+      y: 330,
+      scaleX: 1.06,
+      scaleY: 0.92,
+      rotate: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.16,
+        ease: "easeOut",
+      },
+    },
+    hidden: {
+      opacity: 0,
+      transition: { duration: 0.2 }
+    }
+  };
+
+
+  return (
+    <main className="relative h-screen w-screen bg-[#000000] overflow-hidden font-sans">
+      
+      {/* Background Darkening Overlay (z-40) */}
+      <motion.div 
+        animate={{ opacity: isAnimating ? 1 : 0 }}
+        className="absolute inset-0 z-[40] bg-[#050505]"
+        style={{ pointerEvents: isAnimating ? "auto" : "none" }}
+      >
+         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-40" />
+      </motion.div>
+
+      {/* ==========================================
+          SECTION 1: THE SEARCH CLIFF
+          ========================================== */}
+      <AnimatePresence>
+        {["INITIAL", "TYPING", "ZOOM_OUT", "CURSOR_IN", "PRESSING"].includes(phase) && (
+          <motion.section 
+            exit={{ opacity: 0, scale: 0.9, filter: "blur(12px)" }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="absolute inset-0 flex items-center justify-center px-6 z-[10]"
+          >
+            <motion.div
+              initial={{ scale: 2.8, x: "35vw", y: "-18vh" }}
+              animate={{ 
+                scale: phase === "INITIAL" || phase === "TYPING" ? 2.8 : 1.0,
+                x: `${currentX}vw`,
+                y: phase === "INITIAL" || phase === "TYPING" ? "-18vh" : "0vh"
+              }}
+              transition={{ 
+                scale: { duration: 1.0, ease: "easeInOut" },
+                x: phase === "TYPING" ? { type: "spring", stiffness: 400, damping: 40 } : { duration: 1.0, ease: "easeInOut" },
+                y: { duration: 1.0, ease: "easeInOut" }
+              }}
+              className="flex flex-col items-center w-full max-w-[1100px]"
+            >
+              <div className="flex items-center gap-6 mb-12">
+                <Hexagon className="w-16 h-16 md:w-24 md:h-24 text-white" strokeWidth={1.5} />
+                <h1 className="text-6xl md:text-8xl font-extrabold tracking-tighter text-white">
+                  Vertex.AI
+                </h1>
+              </div>
+
+              {/* Input Bar Layout Container */}
+              <div className="flex items-center w-full justify-center">
+
+                  {/* The Input Box */}
+                  <div className="relative w-full max-w-2xl shrink-0">
+                    <div className="absolute -inset-6 bg-gradient-to-r from-emerald-500/30 via-cyan-500/20 to-emerald-600/30 blur-3xl rounded-full opacity-60" />
+                    <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 via-[#000000] to-emerald-700 blur-md rounded-full opacity-80" />
+
+                    <div className="relative rounded-full p-[2px] bg-gradient-to-r from-zinc-700 via-zinc-900 to-zinc-700 shadow-[0_0_50px_rgba(16,185,129,0.15)]">
+                      <div className="relative flex items-center bg-[#050505] rounded-full h-16 md:h-20 px-6 md:px-8 overflow-visible z-20">
+                        <Sparkles className="w-6 h-6 mr-4 shrink-0 text-emerald-500 relative z-10" />
+                        <div className="flex-1 flex items-center h-full border-none outline-none bg-transparent relative z-10 overflow-visible">
+                          
+                          <span className="text-lg md:text-2xl font-mono tracking-tight whitespace-nowrap z-10 relative flex">
+                            <AnimatePresence>
+                              {typedText.split("").map((char, index) => (
+                                <motion.span
+                                  key={`${index}-${char}`}
+                                  initial={{ opacity: 0, scale: 2, color: "#10b981", filter: "blur(4px)", y: -10 }}
+                                  animate={{ opacity: 1, scale: 1, color: "#ffffff", filter: "blur(0px)", y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.5 }}
+                                  transition={{ duration: 0.2, type: "spring", stiffness: 400, damping: 20 }}
+                                  className="inline-block"
+                                >
+                                  {char === " " ? "\u00A0" : char}
+                                </motion.span>
+                              ))}
+                            </AnimatePresence>
+                          </span>
+                          
+                          <motion.div 
+                            animate={{ opacity: [1, 0] }}
+                            transition={{ repeat: Infinity, duration: 0.8, ease: "steps(2)" }}
+                            className={`w-[2px] h-6 md:h-8 bg-emerald-500 ml-1 z-10 relative block`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Synthesize Button */}
+                  <div className="relative shrink-0 ml-6 w-[160px] h-12 flex items-center justify-center">
+                    <AnimatePresence>
+                      {(phase !== "INITIAL" && phase !== "TYPING") && (
+                        <motion.button
+                          initial={{ opacity: 0, filter: "blur(10px)", scale: 0.8 }}
+                          animate={{ 
+                            opacity: 1, 
+                            scale: phase === "PRESSING" ? 0.9 : 1, 
+                            filter: "blur(0px)",
+                            backgroundColor: phase === "PRESSING" ? "#10b981" : "#ffffff",
+                            color: phase === "PRESSING" ? "#ffffff" : "#000000",
+                            boxShadow: phase === "PRESSING" ? "0 0 30px rgba(16,185,129,0.8)" : "0 0 20px rgba(255,255,255,0.2)"
+                          }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute inset-0 w-full h-full font-bold text-sm md:text-base rounded-full z-20 transition-colors"
+                        >
+                          Synthesize
+                        </motion.button>
+                      )}
+                    </AnimatePresence>
+
+                    <AnimatePresence>
+                      {(phase === "CURSOR_IN" || phase === "PRESSING") && (
+                        <motion.div
+                          initial={{ x: 200, y: 200, opacity: 0 }}
+                          animate={{ x: 30, y: 25, scale: phase === "PRESSING" ? 0.85 : 1, opacity: 1 }}
+                          transition={{ duration: phase === "PRESSING" ? 0.1 : 0.6, ease: phase === "CURSOR_IN" ? "easeOut" : "easeInOut" }}
+                          className="absolute top-0 left-0 z-[50] pointer-events-none"
+                        >
+                          <CartoonHandCursor />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+              </div>
+            </motion.div>
+          </motion.section>
+        )}
+      </AnimatePresence>
+
+
+      {/* ==========================================
+          SECTION 2: HERO TOKEN SKYDIVE & IMPACT
+          ========================================== */}
+      {isAnimating && (
+        <section className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          
+          {/* Subtle Ground Target Plane (z-60) */}
+          <motion.div
+             initial={{ opacity: 0, x: "-50%", y: 330 }}
+             animate={{
+               opacity: phase === "HERO_TOKEN_FALLING" ? 0.2 : phase === "IMPACT" ? 0.8 : 0,
+               scaleX: phase === "IMPACT" ? 1.2 : 1,
+               boxShadow: phase === "IMPACT" ? "0 0 15px rgba(16,185,129,0.5)" : "none"
+             }}
+             transition={{ duration: 0.2 }}
+             className="absolute top-1/2 left-1/2 w-[240px] h-[1px] bg-emerald-400 z-[60]"
+          />
+
+          {/* Clean Emerald Impact Shockwave (z-60) */}
+          <AnimatePresence>
+            {phase === "IMPACT" && (
+              <motion.div
+                initial={{ scale: 0.2, opacity: 1, borderWidth: "6px" }}
+                animate={{ scale: 3.5, opacity: 0, borderWidth: "1px" }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.45, ease: "easeOut" }}
+                className="absolute top-1/2 left-1/2 rounded-full border-emerald-400 z-[60]"
+                style={{ width: "90px", height: "90px", x: "calc(-50% + 40px)", y: "calc(-50% + 330px)" }} // Aligned exactly with token impact point
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Vertical Fall Trail */}
+          <AnimatePresence>
+            {phase === "HERO_TOKEN_FALLING" && (
+              <motion.div 
+                initial={{ opacity: 0, scaleY: 0, x: "-50%" }}
+                animate={{ opacity: 0.3, scaleY: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="absolute top-[calc(50%+45px)] left-[calc(50%+12px)] w-[2px] h-[260px] bg-gradient-to-b from-transparent via-emerald-400 to-transparent origin-bottom z-[60]"
+              />
+            )}
+          </AnimatePresence>
+
+          {/* The Singular Hero Token (z-70) */}
+          <motion.div
+            variants={heroTokenVariants}
+            initial="initial"
+            animate={
+              phase === "SCENE_TRANSITION" || phase === "HERO_TOKEN_FOCUS" ? "focus" :
+              phase === "HERO_TOKEN_FALLING" ? "falling" :
+              phase === "IMPACT" ? "impact" :
+              "hidden"
+            }
+            className="absolute top-1/2 left-1/2 -ml-[24px] -mt-[24px] w-[48px] h-[48px] flex items-center justify-center font-mono font-bold text-white drop-shadow-[0_0_30px_rgba(16,185,129,0.8)] z-[70] text-6xl"
+          >
+            {heroChar}
+          </motion.div>
+        </section>
+      )}
+
+
+      {/* ==========================================
+          SECTION 3: MATRIX REVEAL (z-50)
+          ========================================== */}
+      <AnimatePresence>
+        {["MATRIX_REVEAL", "MATRIX_FILLED", "COMPLETE"].includes(phase) && (
+          <motion.section
+            initial={{ opacity: 0, scale: 0.2, y: 330, x: 40 }} // Expand exactly from impact point coordinates
+            animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }} 
+            className="absolute inset-0 flex flex-col items-center justify-center z-[50]"
+          >
+            {/* Dark glass backing for the grid */}
+            <div className="absolute inset-0 bg-[#020202] opacity-80 pointer-events-none" />
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+            <div className="absolute left-1/4 top-1/4 w-[40vw] h-[40vh] bg-emerald-900/20 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
+            
+            <div className="w-full max-w-[1000px] px-4 md:px-8 flex flex-col items-center relative z-[50]">
+              <div className="relative w-full p-6 md:p-10 bg-[#050505]/80 backdrop-blur-2xl border border-emerald-900/30 rounded-[2rem] shadow-[0_0_100px_rgba(0,0,0,0.8)]">
+                
+                <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-emerald-500/50 rounded-tl-[2rem]" />
+                <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-emerald-500/50 rounded-br-[2rem]" />
+
+                {/* Status Text overlay requested by user (z-80 relative to this container) */}
+                <div className="w-full flex items-center justify-between mb-8 px-2 border-b border-white/5 pb-4 relative z-[80]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-emerald-500 animate-pulse rounded-full shadow-[0_0_10px_#10b981]" />
+                    <span className="text-xs font-mono text-white tracking-[0.2em] font-bold">VECTOR MATRIX BUILT</span>
+                  </div>
+                  <div className="flex gap-8">
+                    <div className="flex flex-col items-end">
+                      <span className="text-[9px] text-zinc-500 font-mono tracking-widest hidden md:block">STATUS</span>
+                      <span className="text-xs text-emerald-400 font-mono">Initializing repository synthesis...</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="w-full flex justify-center overflow-visible" style={{ perspective: "1500px" }}>
+                  <motion.div 
+                    className="w-full max-w-4xl grid grid-cols-5 md:grid-cols-8 gap-2 md:gap-3"
+                    style={{ transformStyle: "preserve-3d" }}
+                  >
+                    {Array.from({ length: MATRIX_TOTAL }).map((_, i) => (
+                      <CudaCell key={i} data={cells[i]} />
+                    ))}
+                  </motion.div>
+                </div>
+              </div>
+            </div>
+          </motion.section>
+        )}
+      </AnimatePresence>
+
+    </main>
+  );
+}

@@ -1,9 +1,25 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function GatewaySection() {
+  const [url, setUrl] = useState("https://github.com/pallets/flask");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleDeploy = async () => {
+    if (!url) return;
+    setLoading(true);
+    
+    // Push directly to engine, we will pass the repo URL in the querystring 
+    // so the engine can kick off the process visually.
+    const encoded = encodeURIComponent(url);
+    router.push(`/engine?repo=${encoded}`);
+  };
+
   return (
     <section className="relative w-full py-40 bg-[#09090B] text-white flex flex-col items-center justify-center px-4 overflow-hidden border-t border-zinc-900">
       {/* Background Grid */}
@@ -46,22 +62,33 @@ export default function GatewaySection() {
           <div className="text-zinc-500">
             $ Awaiting target repository...
           </div>
-          <div className="flex items-center gap-3 mt-4">
+          <div className="flex items-center gap-3 mt-4 border-b border-white/5 pb-2">
             <span className="text-emerald-500 font-bold">➜</span>
             <span className="text-cyan-500 font-bold">~</span>
             <span className="text-zinc-300">vertex map</span>
             <input 
               type="text" 
+              value={url}
+              onChange={e => setUrl(e.target.value)}
               placeholder="https://github.com/..."
-              className="bg-transparent outline-none text-white flex-1 placeholder-zinc-700 caret-white"
+              disabled={loading}
+              className="bg-transparent outline-none text-white flex-1 placeholder-zinc-700 caret-white disabled:opacity-50"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleDeploy();
+              }}
             />
           </div>
           <div className="flex justify-end mt-8">
             <button 
-              onClick={() => window.location.href = '/dashboard'}
-              className="bg-white text-black px-6 py-2.5 rounded-md font-sans font-bold text-sm hover:bg-emerald-400 hover:text-black transition-all flex items-center gap-2"
+              onClick={handleDeploy}
+              disabled={loading}
+              className="bg-white text-black px-6 py-2.5 rounded-md font-sans font-bold text-sm hover:bg-emerald-400 hover:text-black transition-all flex items-center gap-2 disabled:opacity-50 disabled:hover:bg-white"
             >
-              Execute <ArrowRight className="w-4 h-4" />
+              {loading ? (
+                <>Deploying... <Loader2 className="w-4 h-4 animate-spin" /></>
+              ) : (
+                <>Execute <ArrowRight className="w-4 h-4" /></>
+              )}
             </button>
           </div>
         </div>

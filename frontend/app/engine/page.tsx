@@ -2,13 +2,15 @@
 
 import { useState, useEffect, memo } from "react";
 import { Hexagon, Sparkles, Cpu } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Configuration for the CUDA Core Matrix
 const COLS = 20;
 const ROWS = 8;
 const TOTAL_CELLS = COLS * ROWS;
-const targetRepo = "https://github.com/agentic-ai/core-engine";
+const fullText = "https://github.com/agentic-ai/core-engine";
 const hexChars = "0123456789ABCDEF!@#$%&*";
 const TYPING_SPEED = 45; // ms per character
 
@@ -141,7 +143,10 @@ CudaCell.displayName = "CudaCell";
 // ----------------------------------------------------------------------
 // Main Page Component
 // ----------------------------------------------------------------------
-export default function EnginePage() {
+function EngineContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const repoUrl = searchParams.get("repo") || "https://github.com/agentic-ai/core-engine";
   const [phase, setPhase] = useState<
     "INITIAL" | "TYPING" | "ZOOM_OUT" | "CURSOR_IN" | "PRESSING" | "DRAINING" | "CAMERA_PAN" | "FILLING_MATRIX"
   >("INITIAL");
@@ -153,7 +158,7 @@ export default function EnginePage() {
   // Calculate dynamic camera tracking (follows the token exactly)
   const START_X = 35; // Pushes the initial view further right so the bar isn't flush left
   const END_X = -25;
-  const panOffset = START_X - (typedText.length * ((START_X - END_X) / Math.max(1, targetRepo.length)));
+  const panOffset = START_X - (typedText.length * ((START_X - END_X) / Math.max(1, fullText.length)));
   const currentX = phase === "INITIAL" ? START_X : (phase === "TYPING" ? panOffset : 0);
 
   // 1. Start sequence
@@ -167,9 +172,9 @@ export default function EnginePage() {
     if (phase !== "TYPING") return;
     let i = 0;
     const typingInterval = setInterval(() => {
-      setTypedText(targetRepo.slice(0, i + 1));
+      setTypedText(fullText.slice(0, i + 1));
       i++;
-      if (i === targetRepo.length) {
+      if (i === fullText.length) {
         clearInterval(typingInterval);
         setTimeout(() => setPhase("ZOOM_OUT"), 500); 
       }
@@ -202,7 +207,7 @@ export default function EnginePage() {
   useEffect(() => {
     if (phase !== "DRAINING") return;
 
-    let text = targetRepo;
+    let text = fullText;
     let i = 0;
     const drainInterval = setInterval(() => {
       if (text.length === 0) {
@@ -235,12 +240,12 @@ export default function EnginePage() {
     let i = 0;
     const usedCells = new Set<number>();
     const fillInterval = setInterval(() => {
-      if (i >= targetRepo.length) {
+      if (i >= fullText.length) {
         clearInterval(fillInterval);
         return;
       }
 
-      const char = targetRepo[i];
+      const char = fullText[i];
       let targetCell: number;
       do {
         targetCell = Math.floor(Math.random() * TOTAL_CELLS);
@@ -261,6 +266,17 @@ export default function EnginePage() {
 
   return (
     <main className="relative h-screen w-screen bg-[#000000] overflow-hidden font-sans">
+      {/* Absolute Minimal Top Nav Overlay */}
+      <div className="absolute top-0 left-0 w-full px-8 py-6 flex items-center justify-between z-[100] pointer-events-auto">
+        <div 
+          onClick={() => window.location.href = '/dashboard'}
+          className="flex items-center gap-3 cursor-pointer opacity-70 hover:opacity-100 transition-opacity bg-black/50 px-4 py-2 rounded-full border border-white/5 backdrop-blur-md"
+        >
+          <Hexagon className="w-5 h-5 text-emerald-500" fill="currentColor" fillOpacity={0.2} />
+          <span className="font-extrabold text-sm tracking-tighter text-white">Abort Synthesis</span>
+        </div>
+      </div>
+
       <motion.div 
         className="w-full flex flex-col items-center justify-start h-[200vh]"
         animate={{ y: phase === "CAMERA_PAN" || phase === "FILLING_MATRIX" ? "-100vh" : "0vh" }}
@@ -471,5 +487,14 @@ export default function EnginePage() {
 
       </motion.div>
     </main>
+  );
+}
+
+
+export default function EnginePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#09090B] flex items-center justify-center text-emerald-500 font-mono">Initializing Vertex Space...</div>}>
+      <EngineContent />
+    </Suspense>
   );
 }

@@ -24,6 +24,8 @@ interface VertexState {
   performance: PerformanceProfile | null;
   isAnalyzing: boolean;
   selectedPatch: CodeIssue | null;
+  isChatOpen: boolean;
+  toggleChat: () => void;
   
   setGraph: (graph: ArchitectureGraph | null) => void;
   setIssues: (issues: CodeIssue[]) => void;
@@ -54,12 +56,14 @@ export const useVertexStore = create<VertexState>((set) => ({
   performance: null,
   isAnalyzing: false,
   selectedPatch: null,
+  isChatOpen: false,
   
   setGraph: (graph) => set({ graph }),
   setIssues: (issues) => set({ issues }),
   setPerformance: (performance) => set({ performance }),
   setIsAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
   setSelectedPatch: (patch) => set({ selectedPatch: patch }),
+  toggleChat: () => set((state) => ({ isChatOpen: !state.isChatOpen })),
   
   fetchArchitecture: async (repoId: string) => {
     try {
